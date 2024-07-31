@@ -1,14 +1,18 @@
-import { Text, View, TouchableOpacity } from "react-native";
-import { StyleSheet } from "react-native";
+import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
 export default function Index() {
+  const router = useRouter();
+
   return (
     <View style={styles.container}>
+      <Image source={require('./images/GridAwareLogo.webp')} style={styles.logo} />
       <Text style={styles.title}>Welcome to Grid-Aware EV Charging</Text>
-      <TouchableOpacity style={styles.loginButton}>
+      <TouchableOpacity style={styles.loginButton} onPress={() => router.push("(auth)/log-in")}>
         <Text style={styles.loginButtonText}>Log into account</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.signupButton}>
+      <TouchableOpacity style={styles.signupButton} onPress={() => router.push("(auth)/register")}>
         <Text style={styles.signupButtonText}>Create new account</Text>
       </TouchableOpacity>
       <Text style={styles.forgotText}>Forgot username or password?</Text>
@@ -20,6 +24,12 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
+  logo: {
+    width: 150,  
+    height: 150,
+    borderRadius: 75,
+    marginBottom: 20,
+  },
   container: {
     flex: 1,
     justifyContent: "center",
