@@ -1,8 +1,16 @@
 import React from "react"
+import { useRouter } from 'expo-router';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet} from 'react-native';
 
 const LogIn = () => {
+  const router = useRouter();
+
+  const handleLogin = () => {
+    // Navigate to the Dashboard page
+    router.push('(tabs)/Dashboard');
+  };
+
   return (
     <View style = {styles.container}>
       <View style = {styles.logoContainer}>
@@ -19,7 +27,7 @@ const LogIn = () => {
         placeholderTextColor="#FFFFFF"
         secureTextEntry={true}
       />
-      <TouchableOpacity style={styles.loginButton}>
+      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
         <Text style={styles.loginButtonText}>Log In</Text>
       </TouchableOpacity>
     </View>

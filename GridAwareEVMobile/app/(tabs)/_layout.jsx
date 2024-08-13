@@ -1,12 +1,11 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import { Tabs } from 'expo-router';
 
-const BottomTabsLayout = () => {
+export default function BottomTabsLayout() {
   return (
-    <View>
-      <Text>BottomTabsLayout</Text>
-    </View>
-  )
+    <Tabs screenOptions={{ headerShown: false}}>
+      <Tabs.Screen name = "Dashboard" />
+      <Tabs.Screen name = "Notifications" />
+      <Tabs.Screen name = "Profile" />
+    </Tabs>
+  );
 }
-
-export default BottomTabsLayout
