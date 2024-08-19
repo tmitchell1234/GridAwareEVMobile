@@ -1,32 +1,35 @@
 import React from "react";
-import {View, Text, TouchableOpacity, StyleSheet, Image} from 'react-native';
+import { SafeAreaView } from "react-native-safe-area-context";
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { useRouter } from 'expo-router';
 
 const Dashboard = () => {
+  const router = useRouter();
+
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Image source={require('../images/GridAwareLogo.webp')} style={styles.logo} />
         <Text style={styles.headerText}>Dashboard</Text>
-        <Text style={styles.welcomeText}>Welcome, To Grid Aware.</Text>
       </View>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.sectionButton}>
+        <TouchableOpacity style={styles.sectionButton} onPress={() => router.push('(dashoptions)/graphsec')}>
           <Text style={styles.buttonText}>Graph Sections</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.sectionButton}>
+        <TouchableOpacity style={styles.sectionButton} onPress={() => router.push('(dashoptions)/statusspeed')}>
           <Text style={styles.buttonText}>Status & Speed</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.sectionButton}>
+        <TouchableOpacity style={styles.sectionButton} onPress={() => router.push('(dashoptions)/timedisplay')}>
           <Text style={styles.buttonText}>Time Displays</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.sectionButton}>
+        <TouchableOpacity style={styles.sectionButton} onPress={() => router.push('(dashoptions)/gridstatus')}>
           <Text style={styles.buttonText}>Grid Status</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
-}; 
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -35,6 +38,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   header: {
+    flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
   },
@@ -42,17 +46,12 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    marginBottom: 10,
+    marginRight: 10,
   },
   headerText: {
     color: 'white',
     fontSize: 24,
     fontWeight: 'bold',
-  },
-  welcomeText: {
-    color: 'white',
-    fontSize: 16,
-    marginBottom: 20,
   },
   buttonContainer: {
     flexDirection: 'row',
