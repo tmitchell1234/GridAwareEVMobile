@@ -17,6 +17,7 @@
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",
     "@react-navigation/native": "^6.0.2",
+    "axios": "^1.7.4",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
     "d3-shape": "^3.2.0",

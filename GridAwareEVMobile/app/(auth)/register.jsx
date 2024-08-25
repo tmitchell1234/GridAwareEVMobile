@@ -1,10 +1,42 @@
-import React from 'react';
-import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import axios from 'axios';
 
 const Register = () => {
+  const [email, setEmail] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const router = useRouter();
+
+  const handleRegister = async () => {
+    if (password !== confirmPassword) {
+      Alert.alert("Error", "Passwords do not match");
+      return;
+    }
+
+    try {
+      const response = await axios.post('http://gridawarecharging.com/api/user_create', {
+        user_type: 'user',
+        user_email: email,
+        user_password: password,
+        user_first_name: firstName || "", // Optional for user to provide name or no name 
+        user_last_name: lastName || "", // Same concepts as user_first_name
+        user_organization: null,
+      });
+
+      if (response.status === 200) {
+        Alert.alert("Success", "Account created successfully!");
+        router.push('/'); 
+      }
+    } catch (error) {
+      console.error("Error creating account:", error);
+      Alert.alert("Error", "Failed to create account. Please try again.");
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -19,25 +51,40 @@ const Register = () => {
         style={styles.input}
         placeholder="Email"
         placeholderTextColor="#FFFFFF"
+        value={email}
+        onChangeText={setEmail}
       />
       <TextInput
         style={styles.input}
-        placeholder="Username"
+        placeholder="First Name"
         placeholderTextColor="#FFFFFF"
+        value={firstName}
+        onChangeText={setFirstName}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Last Name"
+        placeholderTextColor="#FFFFFF"
+        value={lastName}
+        onChangeText={setLastName}
       />
       <TextInput
         style={styles.input}
         placeholder="Password"
         placeholderTextColor="#FFFFFF"
         secureTextEntry={true}
+        value={password}
+        onChangeText={setPassword}
       />
       <TextInput
         style={styles.input}
         placeholder="Confirm Password"
         placeholderTextColor="#FFFFFF"
         secureTextEntry={true}
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
       />
-      <TouchableOpacity style={styles.continueButton}>
+      <TouchableOpacity style={styles.continueButton} onPress={handleRegister}>
         <Text style={styles.continueButtonText}>Continue</Text>
       </TouchableOpacity>
     </SafeAreaView>
