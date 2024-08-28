@@ -22,6 +22,7 @@ const GridStatus = () => {
     );
 };
 
+//Style Process Below- For Now just keeping all in one location to make it easier for me. 
 const styles = StyleSheet.create({
     container: {
       flex: 1,

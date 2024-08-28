@@ -2,6 +2,8 @@ import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useRouter } from 'expo-router';
+import { LineChart } from 'react-native-chart-kit';
+import { Dimensions } from 'react-native';
 
 const Dashboard = () => {
   const router = useRouter();
@@ -12,6 +14,53 @@ const Dashboard = () => {
         <Image source={require('../images/GridAwareLogo.webp')} style={styles.logo} />
         <Text style={styles.headerText}>Dashboard</Text>
       </View>
+
+      {/* This Line Chart displays fake data, testing out graphing*/}
+      <LineChart
+        data={{
+          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+          datasets: [
+            {
+              data: [20, 45, 28, 80, 99, 43],
+              strokeWidth: 2,
+            },
+            {
+              data: [30, 50, 40, 95, 85, 50],
+              strokeWidth: 2,
+            },
+            {
+              data: [10, 40, 20, 60, 90, 30],
+              strokeWidth: 2,
+            }
+          ],
+        }}
+        width={Dimensions.get('window').width - 40} // this comes from react native 
+        height={220}
+        yAxisLabel=""
+        yAxisSuffix=""
+        chartConfig={{
+          backgroundColor: "#022173",
+          backgroundGradientFrom: "#1c3faa",
+          backgroundGradientTo: "#226bdf",
+          decimalPlaces: 2,
+          color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+          labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+          style: {
+            borderRadius: 16,
+          },
+          propsForDots: {
+            r: "6",
+            strokeWidth: "2",
+            stroke: "#ffa726",
+          },
+        }}
+        bezier
+        style={{
+          marginVertical: 20,
+          borderRadius: 16,
+        }}
+      />
+
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.sectionButton} onPress={() => router.push('(dashoptions)/graphsec')}>
@@ -57,6 +106,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     flexWrap: 'wrap',
+    marginTop: 20, // creates the distance between the chart and buttons 
   },
   sectionButton: {
     backgroundColor: '#FF6F3C',
