@@ -1,6 +1,6 @@
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LineChart } from 'react-native-chart-kit';
 import { Dimensions } from 'react-native';
@@ -15,7 +15,7 @@ const Dashboard = () => {
         <Text style={styles.headerText}>Dashboard</Text>
       </View>
 
-      {/* This Line Chart displays fake data, testing out graphing*/}
+      {/* Line Chart displaying fake data */}
       <LineChart
         data={{
           labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
@@ -34,7 +34,7 @@ const Dashboard = () => {
             }
           ],
         }}
-        width={Dimensions.get('window').width - 40} // this comes from react native 
+        width={Dimensions.get('window').width - 40} 
         height={220}
         yAxisLabel=""
         yAxisSuffix=""
@@ -61,21 +61,36 @@ const Dashboard = () => {
         }}
       />
 
-
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.sectionButton} onPress={() => router.push('(dashoptions)/graphsec')}>
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
+        <TouchableOpacity 
+          style={styles.sectionButton} 
+          onPress={() => router.push('(dashoptions)/graphsec')}
+          activeOpacity={0.8}
+        >
           <Text style={styles.buttonText}>Graph Sections</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.sectionButton} onPress={() => router.push('(dashoptions)/statusspeed')}>
+        <TouchableOpacity 
+          style={styles.sectionButton} 
+          onPress={() => router.push('(dashoptions)/statusspeed')}
+          activeOpacity={0.8}
+        >
           <Text style={styles.buttonText}>Status & Speed</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.sectionButton} onPress={() => router.push('(dashoptions)/timedisplay')}>
+        <TouchableOpacity 
+          style={styles.sectionButton} 
+          onPress={() => router.push('(dashoptions)/timedisplay')}
+          activeOpacity={0.8}
+        >
           <Text style={styles.buttonText}>Time Displays</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.sectionButton} onPress={() => router.push('(dashoptions)/gridstatus')}>
+        <TouchableOpacity 
+          style={styles.sectionButton} 
+          onPress={() => router.push('(dashoptions)/gridstatus')}
+          activeOpacity={0.8}
+        >
           <Text style={styles.buttonText}>Grid Status</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -102,23 +117,23 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
-    marginTop: 20, // creates the distance between the chart and buttons 
+  scrollContainer: {
+    flex: 1,
+    marginTop: 20,
+  },
+  scrollContent: {
+    paddingBottom: 20, 
   },
   sectionButton: {
     backgroundColor: '#FF6F3C',
-    padding: 15,
+    padding: 20,
     borderRadius: 10,
-    width: '45%',
     alignItems: 'center',
     marginBottom: 10,
   },
   buttonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 18,
   },
 });
 
