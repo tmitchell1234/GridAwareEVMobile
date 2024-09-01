@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, Alert, Animated, Easing } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
@@ -11,10 +11,23 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const router = useRouter();
+  const [buttonScale] = useState(new Animated.Value(1)); // For button press animation
 
   const handleRegister = async () => {
+    // Check if email or password is empty
+    if (!email || !password) {
+      Alert.alert("Error", "Email and Password are required", [{ text: "OK", onPress: () => {} }], {
+        cancelable: true,
+        onDismiss: () => {},
+      });
+      return;
+    }
+
     if (password !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match");
+      Alert.alert("Error", "Passwords do not match", [{ text: "OK", onPress: () => {} }], {
+        cancelable: true,
+        onDismiss: () => {},
+      });
       return;
     }
 
@@ -23,14 +36,33 @@ const Register = () => {
         user_type: 'user',
         user_email: email,
         user_password: password,
-        user_first_name: firstName || "", // Optional for user to provide name or no name 
-        user_last_name: lastName || "", // Same concepts as user_first_name
+        user_first_name: firstName || "", 
+        user_last_name: lastName || "",
         user_organization: null,
       });
 
       if (response.status === 200) {
-        Alert.alert("Success", "Account created successfully!");
-        router.push('/'); 
+        Animated.sequence([
+          Animated.timing(buttonScale, {
+            toValue: 1.2,
+            duration: 200,
+            easing: Easing.ease,
+            useNativeDriver: true,
+          }),
+          Animated.timing(buttonScale, {
+            toValue: 1,
+            duration: 200,
+            easing: Easing.ease,
+            useNativeDriver: true,
+          }),
+        ]).start(() => {
+          Alert.alert("Success", "Account created successfully!", [
+            {
+              text: "OK",
+              onPress: () => router.push('/'),
+            }
+          ]);
+        });
       }
     } catch (error) {
       console.error("Error creating account:", error);
@@ -50,28 +82,28 @@ const Register = () => {
       <TextInput
         style={styles.input}
         placeholder="Email"
-        placeholderTextColor="#FFFFFF"
+        placeholderTextColor="#B0B0B0"
         value={email}
         onChangeText={setEmail}
       />
       <TextInput
         style={styles.input}
         placeholder="First Name"
-        placeholderTextColor="#FFFFFF"
+        placeholderTextColor="#B0B0B0"
         value={firstName}
         onChangeText={setFirstName}
       />
       <TextInput
         style={styles.input}
         placeholder="Last Name"
-        placeholderTextColor="#FFFFFF"
+        placeholderTextColor="#B0B0B0"
         value={lastName}
         onChangeText={setLastName}
       />
       <TextInput
         style={styles.input}
         placeholder="Password"
-        placeholderTextColor="#FFFFFF"
+        placeholderTextColor="#B0B0B0"
         secureTextEntry={true}
         value={password}
         onChangeText={setPassword}
@@ -79,19 +111,21 @@ const Register = () => {
       <TextInput
         style={styles.input}
         placeholder="Confirm Password"
-        placeholderTextColor="#FFFFFF"
+        placeholderTextColor="#B0B0B0"
         secureTextEntry={true}
         value={confirmPassword}
         onChangeText={setConfirmPassword}
       />
-      <TouchableOpacity style={styles.continueButton} onPress={handleRegister}>
-        <Text style={styles.continueButtonText}>Continue</Text>
-      </TouchableOpacity>
+      <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
+        <TouchableOpacity style={styles.continueButton} onPress={handleRegister}>
+          <Text style={styles.continueButtonText}>Continue</Text>
+        </TouchableOpacity>
+      </Animated.View>
     </SafeAreaView>
   );
 };
 
-//Style Process Below- For Now just keeping all in one location to make it easier for me. 
+// Style Process Below- For Now just keeping all in one location to make it easier for me. 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -107,19 +141,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logo: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     marginBottom: 10,
   },
   cancelButton: {
-    color: '#FFFFFF',
+    color: '#FF6F3C',
     fontSize: 24,
+    fontWeight: 'bold',
   },
   createAccountText: {
     color: 'white',
-    fontSize: 24,
-    marginBottom: 20,
+    fontSize: 26,
+    marginBottom: 30,
+    textAlign: 'center',
+    textShadowColor: '#000',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 10,
   },
   input: {
     backgroundColor: '#1A1E3A',
@@ -128,19 +167,24 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     marginBottom: 20,
-    borderColor: '#FFFFFF',
+    borderColor: '#4D9FF9',
     borderWidth: 1,
   },
   continueButton: {
     backgroundColor: '#FF6F3C',
     padding: 15,
-    borderRadius: 10,
+    borderRadius: 25,
     width: '100%',
     alignItems: 'center',
+    shadowColor: "#FF6F3C",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.8,
+    shadowRadius: 10,
   },
   continueButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: '600',
   },
 });
 
