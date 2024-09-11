@@ -57,7 +57,10 @@ const LogIn = () => {
 
       if (response.status === 200) {
         const userJwt = response.data.token;  // Extract JWT from response
+        const userEmail = response.data.email || '';
         await AsyncStorage.setItem('userJwt', userJwt);  // Store JWT in AsyncStorage
+        await AsyncStorage.setItem('email', userEmail);
+
         router.push('(tabs)/Dashboard'); // Navigate to dashboard on success
       } else {
         Alert.alert('Login Failed', response.data.message || 'Invalid email or password');

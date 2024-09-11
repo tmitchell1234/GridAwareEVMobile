@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet, SafeAreaView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert, ScrollView } from 'react-native';
 import axios from 'axios';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -9,6 +9,7 @@ const API_KEY = Constants.expoConfig.extra.API_KEY;
 const Bluetooth = () => {
   const [jwtToken, setJwtToken] = useState(null);
   const [devices, setDevices] = useState([]);
+  const [macAddress, setMacAddress] = useState(''); // State for MAC Address input
 
   // Retrieve the JWT token from AsyncStorage when the component mounts
   useEffect(() => {
@@ -27,9 +28,9 @@ const Bluetooth = () => {
     fetchToken();
   }, []);
 
-  const registerDevice = async (macAddress) => {
-    if (!jwtToken) {
-      Alert.alert('Error', 'You need to log in first.');
+  const registerDevice = async () => {
+    if (!jwtToken || !macAddress) {
+      Alert.alert('Error', 'You need to log in and enter a valid MAC address.');
       return;
     }
 
@@ -46,9 +47,9 @@ const Bluetooth = () => {
     }
   };
 
-  const unregisterDevice = async (macAddress) => {
-    if (!jwtToken) {
-      Alert.alert('Error', 'You need to log in first.');
+  const unregisterDevice = async () => {
+    if (!jwtToken || !macAddress) {
+      Alert.alert('Error', 'You need to log in and enter a valid MAC address.');
       return;
     }
 
@@ -87,32 +88,112 @@ const Bluetooth = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.text}>Bluetooth Screen</Text>
-      <Button title="Register Device" onPress={() => registerDevice('00:1A:7D:DA:71:13')} />
-      <Button title="Unregister Device" onPress={() => unregisterDevice('00:1A:7D:DA:71:13')} />
-      <Button title="Get Devices" onPress={getDevicesForUser} />
-      {devices.length > 0 && (
-        <View>
-          <Text>Devices:</Text>
-          {devices.map((device, index) => (
-            <Text key={index}>{device.device_mac_address}</Text>
-          ))}
-        </View>
-      )}
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <Text style={styles.headerText}>Bluetooth Device Management</Text>
+        
+        {/* MAC Address Input */}
+        <TextInput
+          style={styles.input}
+          placeholder="Enter MAC Address"
+          placeholderTextColor="#B0B0B0"
+          value={macAddress}
+          onChangeText={setMacAddress}
+        />
+
+        {/* Register Device Button */}
+        <TouchableOpacity style={styles.actionButton} onPress={registerDevice}>
+          <Text style={styles.buttonText}>Register Device</Text>
+        </TouchableOpacity>
+
+        {/* Unregister Device Button */}
+        <TouchableOpacity style={styles.actionButton} onPress={unregisterDevice}>
+          <Text style={styles.buttonText}>Unregister Device</Text>
+        </TouchableOpacity>
+
+        {/* Get Devices Button */}
+        <TouchableOpacity style={styles.actionButton} onPress={getDevicesForUser}>
+          <Text style={styles.buttonText}>Get Registered Devices</Text>
+        </TouchableOpacity>
+
+        {/* Display Registered Devices */}
+        {devices.length > 0 && (
+          <View style={styles.devicesList}>
+            <Text style={styles.sectionTitle}>Registered Devices:</Text>
+            {devices.map((device, index) => (
+              <Text key={index} style={styles.deviceText}>
+                {device.device_mac_address}
+              </Text>
+            ))}
+          </View>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 };
 
+// Style Definitions
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#0A0E27',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0A0E27',
   },
-  text: {
-    color: 'white',
-    fontSize: 18,
+  scrollContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  headerText: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  input: {
+    backgroundColor: '#1A1E3A',
+    color: '#FFFFFF',
+    width: '100%',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 20,
+    borderColor: '#4D9FF9',
+    borderWidth: 1,
+    textAlign: 'center',
+  },
+  actionButton: {
+    backgroundColor: '#4D9FF9',
+    padding: 15,
+    borderRadius: 25,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 15,
+    shadowColor: '#4D9FF9',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  devicesList: {
+    marginTop: 30,
+    width: '100%',
+  },
+  sectionTitle: {
+    fontSize: 20,
+    color: '#FF6F3C',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  deviceText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    marginBottom: 5,
+    textAlign: 'center',
   },
 });
 

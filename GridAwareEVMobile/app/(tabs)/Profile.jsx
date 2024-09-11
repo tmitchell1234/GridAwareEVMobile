@@ -1,10 +1,16 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 
 const Profile = () => {
   const router = useRouter();
+  const [userData, setUserData] = useState({
+    firstName: '',
+    lastName: '',
+    email: ''
+  });
 
   const handleLogout = () => {
     Alert.alert(
@@ -17,7 +23,11 @@ const Profile = () => {
         },
         {
           text: "Log Out",
-          onPress: () => router.replace('/')
+          onPress: () => {
+            // You can clear AsyncStorage or any token here if necessary
+            AsyncStorage.clear();
+            router.replace('/');
+          }
         }
       ],
       { cancelable: true }
@@ -29,17 +39,18 @@ const Profile = () => {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
           <Image source={require('../images/GridAwareLogo.png')} style={styles.profileImage} />
-          <Text style={styles.usernameText}>User</Text>
-          <Text style={styles.emailText}>User@example.com</Text>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Update Profile</Text>
+          <TouchableOpacity style={styles.optionButton} onPress={() => router.push('/update-first-name')}>
+            <Text style={styles.optionText}>Update First Name</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.optionButton} onPress={() => router.push('/update-last-name')}>
+            <Text style={styles.optionText}>Update Last Name</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.optionButton} onPress={() => router.push('/update-email')}>
             <Text style={styles.optionText}>Update Email</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.optionButton} onPress={() => router.push('/update-password')}>
-            <Text style={styles.optionText}>Change Password</Text>
           </TouchableOpacity>
         </View>
 
