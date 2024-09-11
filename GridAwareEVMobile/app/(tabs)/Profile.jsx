@@ -28,7 +28,7 @@ const Profile = () => {
     <SafeAreaView style={styles.safeAreaContainer}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
-          <Image source={require('../images/GridAwareLogo.webp')} style={styles.profileImage} />
+          <Image source={require('../images/GridAwareLogo.png')} style={styles.profileImage} />
           <Text style={styles.usernameText}>User</Text>
           <Text style={styles.emailText}>User@example.com</Text>
         </View>

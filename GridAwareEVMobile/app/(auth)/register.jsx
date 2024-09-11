@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, Alert, Animated, Easing } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import Constants from 'expo-constants';
 import axios from 'axios';
 
 const Register = () => {
@@ -10,6 +11,9 @@ const Register = () => {
   const [lastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  const API_KEY = Constants.expoConfig.extra.API_KEY;
+
   const router = useRouter();
   const [buttonScale] = useState(new Animated.Value(1)); // For button press animation
 
@@ -33,12 +37,13 @@ const Register = () => {
 
     try {
       const response = await axios.post('http://gridawarecharging.com/api/user_create', {
+        api_key: API_KEY,
         user_type: 'user',
         user_email: email,
         user_password: password,
         user_first_name: firstName || "", 
         user_last_name: lastName || "",
-        user_organization: null,
+        user_organization: null
       });
 
       if (response.status === 200) {
@@ -73,7 +78,7 @@ const Register = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Image source={require('../images/GridAwareLogo.webp')} style={styles.logo} />
+        <Image source={require('../images/GridAwareLogo.png')} style={styles.logo} />
         <TouchableOpacity onPress={() => router.push('/')}>
           <Text style={styles.cancelButton}>X</Text>
         </TouchableOpacity>

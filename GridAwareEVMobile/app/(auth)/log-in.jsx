@@ -3,12 +3,18 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Animated } from 'react-native';
+import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios'; // Import axios
 
 const LogIn = () => {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [logoAnimation] = useState(new Animated.Value(0)); // Animation state for the logo
+
+  // Access the API_KEY from app.json
+  const API_KEY = Constants.expoConfig.extra.API_KEY;
 
   // Function to animate the logo
   const animateLogo = () => {
@@ -35,30 +41,42 @@ const LogIn = () => {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch('http://gridawarecharging.com/api/user_login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_email: email,
-          user_password: password,
-        }),
+      // Log the API request details
+      console.log('API Key:', API_KEY); // Log the API key to verify it
+      console.log('Sending login request with:', { email, password });
+
+      // Make the POST request using axios
+      const response = await axios.post('http://gridawarecharging.com/api/user_login', {
+        api_key: API_KEY,
+        user_email: email,
+        user_password: password
       });
 
-      const data = await response.json();
+      // Handle successful login
+      console.log('Response Data:', response.data);
 
-      if (response.ok) {
-        // Navigate to the Dashboard page on successful login
-        router.push('(tabs)/Dashboard');
+      if (response.status === 200) {
+        const userJwt = response.data.token;  // Extract JWT from response
+        await AsyncStorage.setItem('userJwt', userJwt);  // Store JWT in AsyncStorage
+        router.push('(tabs)/Dashboard'); // Navigate to dashboard on success
       } else {
-        // Display error message
-        Alert.alert('Login Failed', data.message || 'Invalid email or password');
+        Alert.alert('Login Failed', response.data.message || 'Invalid email or password');
       }
     } catch (error) {
-      // Handle network or other errors
-      Alert.alert('Error', 'Something went wrong. Please try again.');
-      console.error('Login error:', error);
+      // Detailed error handling with axios
+      if (error.response) {
+        // Server responded with a status other than 2xx
+        console.error('Login error (response):', error.response.data);
+        Alert.alert('Login Failed', error.response.data.message || 'Something went wrong. Please try again.');
+      } else if (error.request) {
+        // Request was made but no response was received
+        console.error('Login error (request):', error.request);
+        Alert.alert('Error', 'No response from server. Please check your connection.');
+      } else {
+        // Something else happened while making the request
+        console.error('Login error:', error.message);
+        Alert.alert('Error', 'Something went wrong. Please try again.');
+      }
     }
   };
 
@@ -71,7 +89,7 @@ const LogIn = () => {
         inputRange: [0, 1],
         outputRange: [1, 1.2]
       }) }] }]}>
-        <Image source={require('../images/GridAwareLogo.webp')} style={styles.logo} />
+        <Image source={require('../images/GridAwareLogo.png')} style={styles.logo} />
       </Animated.View>
 
       <TextInput

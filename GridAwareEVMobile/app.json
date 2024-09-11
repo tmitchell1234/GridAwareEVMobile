@@ -4,22 +4,34 @@
     "slug": "GridAwareEVMobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./app/images/GridAwareLogo.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./app/images/GridAwareLogo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.ambition.ben.GridAwareEVMobile"
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true,
+          "NSAllowsArbitraryLoadsInWebContent": true,
+          "NSExceptionDomains": {
+            "gridawarecharging.com": {
+              "NSIncludesSubdomains": true,
+              "NSExceptionAllowsInsecureHTTPLoads": true,
+              "NSRequiresCertificateTransparency": false
+            }
+          }
+        }
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#ffffff",
+        "permissions": ["USE_FINGERPRINT", "USE_BIOMETRIC"]
       },
       "package": "com.ambition.ben.GridAwareEVMobile"
     },
@@ -29,7 +41,8 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true
@@ -40,7 +53,8 @@
       },
       "eas": {
         "projectId": "c7fd3b43-0b76-4de2-a871-894d700146bd"
-      }
+      },
+      "API_KEY": "nSCBzZ6LnWiVOUYPzB3AipGKmnh4Gk9OSLiOXypaUgM="
     }
   }
 }

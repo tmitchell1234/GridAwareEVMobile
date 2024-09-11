@@ -7,7 +7,7 @@ const StatusSpeed = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Image source={require('../images/GridAwareLogo.webp')} style={styles.logo} />
+        <Image source={require('../images/GridAwareLogo.png')} style={styles.logo} />
         <Text style={styles.headerText}>Speed & Status</Text>
       </View>
 

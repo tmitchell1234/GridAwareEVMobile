@@ -30,7 +30,7 @@ export default function Index() {
   return (
     <View style={styles.container}>
       <Animated.View style={{ transform: [{ scale: pulseAnimation }] }}>
-        <Image source={require('./images/GridAwareLogo.webp')} style={styles.logo} />
+        <Image source={require('./images/GridAwareLogo.png')} style={styles.logo} />
       </Animated.View>
       <Text style={styles.title}>Welcome to Grid-Aware EV Charging</Text>
       <TouchableOpacity style={styles.loginButton} onPress={() => router.push("(auth)/log-in")}>
