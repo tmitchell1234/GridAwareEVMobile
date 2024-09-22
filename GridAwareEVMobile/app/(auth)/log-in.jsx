@@ -46,7 +46,7 @@ const LogIn = () => {
       console.log('Sending login request with:', { email, password });
 
       // Make the POST request using axios
-      const response = await axios.post('http://gridawarecharging.com/api/user_login', {
+      const response = await axios.post('https://gridawarecharging.com/api/user_login', {
         api_key: API_KEY,
         user_email: email,
         user_password: password
@@ -61,7 +61,8 @@ const LogIn = () => {
         await AsyncStorage.setItem('userJwt', userJwt);  // Store JWT in AsyncStorage
         await AsyncStorage.setItem('email', userEmail);
 
-        router.push('(tabs)/Dashboard'); // Navigate to dashboard on success
+        router.replace('(tabs)/Dashboard'); // Navigate to dashboard on success
+        // once logged in, the user can only access the login page by logging out.
       } else {
         Alert.alert('Login Failed', response.data.message || 'Invalid email or password');
       }

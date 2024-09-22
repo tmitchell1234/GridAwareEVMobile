@@ -24,15 +24,34 @@
               "NSRequiresCertificateTransparency": false
             }
           }
-        }
-      }
+        },
+        "NSBluetoothAlwaysUsageDescription": "This app requires Bluetooth access to communicate with nearby devices, even in the background.",
+        "NSBluetoothPeripheralUsageDescription": "This app uses Bluetooth to connect and communicate with peripheral devices like sensors.",
+        "NSLocationWhenInUseUsageDescription": "This app requires access to your location while it's in use for Bluetooth functionality.",
+        "NSLocationAlwaysUsageDescription": "This app requires continuous access to your location to enable background Bluetooth connectivity.",
+        "NSLocationUsageDescription": "This app requires location access to discover nearby Bluetooth devices.",
+        "UIBackgroundModes": [
+          "location",
+          "fetch",
+          "bluetooth-central"
+        ]
+      },
+      "bundleIdentifier": "com.ambition.ben.GridAwareEVMobile"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff",
-        "permissions": ["USE_FINGERPRINT", "USE_BIOMETRIC"]
+        "backgroundColor": "#ffffff"
       },
+      "permissions": [
+        "USE_FINGERPRINT",
+        "USE_BIOMETRIC",
+        "BLUETOOTH",
+        "BLUETOOTH_ADMIN",
+        "BLUETOOTH_SCAN",
+        "BLUETOOTH_CONNECT",
+        "ACCESS_FINE_LOCATION"
+      ],
       "package": "com.ambition.ben.GridAwareEVMobile"
     },
     "web": {

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -8,6 +8,44 @@ import { Dimensions } from 'react-native';
 const Dashboard = () => {
   const router = useRouter();
 
+  // State for chart data
+  const [chartData, setChartData] = useState({
+    labels: Array.from({ length: 10 }, (_, i) => i.toString()), // Just numbering the X-axis
+    datasets: [
+      {
+        data: Array(10).fill(60), // Initial data of 60 Hz for 10 points
+        strokeWidth: 2,
+      },
+    ],
+  });
+
+  // Function to simulate frequency adjustment back to 60 Hz
+  const simulateFrequency = () => {
+    setChartData((prevState) => {
+      const lastDataPoint = prevState.datasets[0].data[prevState.datasets[0].data.length - 1];
+      const newDataPoint = lastDataPoint + (Math.random() * 2 - 1); // Simulate slight fluctuation
+
+      // Bring it back towards 60 Hz slowly
+      const adjustedDataPoint = newDataPoint > 60 ? newDataPoint - 0.5 : newDataPoint + 0.5;
+
+      return {
+        ...prevState,
+        datasets: [
+          {
+            data: [...prevState.datasets[0].data.slice(1), adjustedDataPoint], // Shift the data and add new point
+            strokeWidth: 2,
+          },
+        ],
+      };
+    });
+  };
+
+  // Use an interval to update the graph every second
+  useEffect(() => {
+    const interval = setInterval(simulateFrequency, 1000); // Update every second
+    return () => clearInterval(interval); // Cleanup on unmount
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -15,29 +53,13 @@ const Dashboard = () => {
         <Text style={styles.headerText}>Dashboard</Text>
       </View>
 
-      {/* Line Chart displaying fake data */}
+      {/* Line Chart displaying dynamic data */}
       <LineChart
-        data={{
-          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-          datasets: [
-            {
-              data: [20, 45, 28, 80, 99, 43],
-              strokeWidth: 2,
-            },
-            {
-              data: [30, 50, 40, 95, 85, 50],
-              strokeWidth: 2,
-            },
-            {
-              data: [10, 40, 20, 60, 90, 30],
-              strokeWidth: 2,
-            }
-          ],
-        }}
+        data={chartData}
         width={Dimensions.get('window').width - 40} 
         height={220}
         yAxisLabel=""
-        yAxisSuffix=""
+        yAxisSuffix=" Hz"
         chartConfig={{
           backgroundColor: "#022173",
           backgroundGradientFrom: "#1c3faa",

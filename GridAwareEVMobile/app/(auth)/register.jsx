@@ -12,31 +12,44 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  // State for password validation
+  const [isValidLength, setIsValidLength] = useState(false);
+  const [hasSpecialChar, setHasSpecialChar] = useState(false);
+  const [hasLowercase, setHasLowercase] = useState(false);
+  const [hasNumber, setHasNumber] = useState(false);
+
   const API_KEY = Constants.expoConfig.extra.API_KEY;
 
   const router = useRouter();
   const [buttonScale] = useState(new Animated.Value(1)); // For button press animation
 
+  // Password validation function
+  const validatePassword = (password) => {
+    setIsValidLength(password.length >= 12);
+    setHasSpecialChar(/[!@#$%^&*(),.?":{}|<>]/.test(password));
+    setHasLowercase(/[a-z]/.test(password));
+    setHasNumber(/[0-9]/.test(password));
+  };
+
   const handleRegister = async () => {
     // Check if email or password is empty
     if (!email || !password) {
-      Alert.alert("Error", "Email and Password are required", [{ text: "OK", onPress: () => {} }], {
-        cancelable: true,
-        onDismiss: () => {},
-      });
+      Alert.alert("Error", "Email and Password are required", [{ text: "OK", onPress: () => {} }]);
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match", [{ text: "OK", onPress: () => {} }], {
-        cancelable: true,
-        onDismiss: () => {},
-      });
+      Alert.alert("Error", "Passwords do not match", [{ text: "OK", onPress: () => {} }]);
+      return;
+    }
+
+    if (!(isValidLength && hasSpecialChar && hasLowercase && hasNumber)) {
+      Alert.alert("Error", "Password does not meet the required criteria", [{ text: "OK", onPress: () => {} }]);
       return;
     }
 
     try {
-      const response = await axios.post('http://gridawarecharging.com/api/user_create', {
+      const response = await axios.post('https://gridawarecharging.com/api/user_create', {
         api_key: API_KEY,
         user_type: 'user',
         user_email: email,
@@ -84,6 +97,7 @@ const Register = () => {
         </TouchableOpacity>
       </View>
       <Text style={styles.createAccountText}>Create Account</Text>
+
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -105,14 +119,36 @@ const Register = () => {
         value={lastName}
         onChangeText={setLastName}
       />
+      
+      {/* Password Input */}
       <TextInput
         style={styles.input}
         placeholder="Password"
         placeholderTextColor="#B0B0B0"
         secureTextEntry={true}
         value={password}
-        onChangeText={setPassword}
+        onChangeText={(text) => {
+          setPassword(text);
+          validatePassword(text);  // Validate password as the user types
+        }}
       />
+
+      {/* Password Validation Display */}
+      <View style={styles.passwordValidationContainer}>
+        <Text style={[styles.validationText, isValidLength ? styles.valid : styles.invalid]}>
+          {isValidLength ? '✔' : '✖'} At least 12 characters
+        </Text>
+        <Text style={[styles.validationText, hasSpecialChar ? styles.valid : styles.invalid]}>
+          {hasSpecialChar ? '✔' : '✖'} Minimum one special character
+        </Text>
+        <Text style={[styles.validationText, hasLowercase ? styles.valid : styles.invalid]}>
+          {hasLowercase ? '✔' : '✖'} Lowercase letters
+        </Text>
+        <Text style={[styles.validationText, hasNumber ? styles.valid : styles.invalid]}>
+          {hasNumber ? '✔' : '✖'} Contains a number
+        </Text>
+      </View>
+
       <TextInput
         style={styles.input}
         placeholder="Confirm Password"
@@ -121,6 +157,7 @@ const Register = () => {
         value={confirmPassword}
         onChangeText={setConfirmPassword}
       />
+
       <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
         <TouchableOpacity style={styles.continueButton} onPress={handleRegister}>
           <Text style={styles.continueButtonText}>Continue</Text>
@@ -130,7 +167,7 @@ const Register = () => {
   );
 };
 
-// Style Process Below- For Now just keeping all in one location to make it easier for me. 
+// Style Process Below - For Now just keeping all in one location to make it easier for me. 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -190,6 +227,21 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '600',
+  },
+  passwordValidationContainer: {
+    width: '100%',
+    marginBottom: 10,
+  },
+  validationText: {
+    fontSize: 14,
+    marginBottom: 5,
+    textAlign: 'left',
+  },
+  valid: {
+    color: 'green',
+  },
+  invalid: {
+    color: 'red',
   },
 });
 

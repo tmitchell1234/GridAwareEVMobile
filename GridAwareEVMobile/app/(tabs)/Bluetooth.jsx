@@ -1,15 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert, ScrollView } from 'react-native';
-import axios from 'axios';
-import Constants from 'expo-constants';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert, ScrollView, FlatList, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BleManager } from 'react-native-ble-plx';
+import { requestMultiple, PERMISSIONS, RESULTS } from 'react-native-permissions';
+import axios from 'axios';
+import Constants from 'expo-constants'; 
 
-const API_KEY = Constants.expoConfig.extra.API_KEY;
+const manager = new BleManager();
+const API_KEY = Constants.expoConfig.extra.API_KEY;  // API_KEY, can be found in app.json
 
 const Bluetooth = () => {
   const [jwtToken, setJwtToken] = useState(null);
-  const [devices, setDevices] = useState([]);
-  const [macAddress, setMacAddress] = useState(''); // State for MAC Address input
+  const [scannedDevices, setScannedDevices] = useState([]); // Scanned Bluetooth devices
+  const [selectedDevice, setSelectedDevice] = useState(null); // Selected Bluetooth device
+  const [isScanning, setIsScanning] = useState(false); // Scanning state
+  const [connectedDevice, setConnectedDevice] = useState(null); // Currently connected Bluetooth device
+  const [macAddress, setMacAddress] = useState(''); // MAC Address state
 
   // Retrieve the JWT token from AsyncStorage when the component mounts
   useEffect(() => {
@@ -28,104 +34,212 @@ const Bluetooth = () => {
     fetchToken();
   }, []);
 
-  const registerDevice = async () => {
-    if (!jwtToken || !macAddress) {
-      Alert.alert('Error', 'You need to log in and enter a valid MAC address.');
+  // Request Bluetooth and Location permissions for both iOS and Android
+  const requestBluetoothPermissions = async () => {
+    try {
+      if (Platform.OS === 'android') {
+        const permissions = [
+          PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
+          PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
+          PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION
+        ];
+        const results = await requestMultiple(permissions);
+        handlePermissionsResult(results);
+      } else if (Platform.OS === 'ios') {
+        const permissions = [
+          PERMISSIONS.IOS.BLUETOOTH_PERIPHERAL,
+          PERMISSIONS.IOS.LOCATION_WHEN_IN_USE
+        ];
+        const results = await requestMultiple(permissions);
+        handlePermissionsResult(results);
+      }
+    } catch (error) {
+      console.error('Permission error:', error);
+      Alert.alert('Error', 'Failed to request Bluetooth permission.');
+    }
+  };
+
+  // Handle permission results for both platforms
+  const handlePermissionsResult = (results) => {
+    let allGranted = true;
+
+    for (const permission in results) {
+      if (results[permission] !== RESULTS.GRANTED) {
+        allGranted = false;
+        break;
+      }
+    }
+
+    if (allGranted) {
+      Alert.alert('Permission granted', 'You can now scan for Bluetooth devices.');
+    } else {
+      Alert.alert('Permission denied', 'All required permissions must be granted to use Bluetooth.');
+    }
+  };
+
+  // Scan for Bluetooth devices
+  const scanForDevices = async () => {
+    setIsScanning(true);
+    try {
+      manager.startDeviceScan(null, null, (error, device) => {
+        if (error) {
+          console.error('Scan error:', error);
+          setIsScanning(false);
+          Alert.alert('Error', 'Failed to scan for devices.');
+          return;
+        }
+
+        if (device && !scannedDevices.some((d) => d.id === device.id)) {
+          setScannedDevices((prevDevices) => [...prevDevices, device]);
+        }
+      });
+
+      //  It stop scanning after 5 seconds
+      setTimeout(() => {
+        manager.stopDeviceScan();
+        setIsScanning(false);
+        Alert.alert('Scanning stopped', 'Finished scanning for devices.');
+      }, 5000);
+    } catch (error) {
+      console.error('Error while scanning:', error);
+      setIsScanning(false);
+    }
+  };
+
+  // Register the selected Bluetooth device
+  const registerDevice = async (device) => {
+    if (!jwtToken || !device) {
+      Alert.alert('Error', 'You need to log in and select a valid device.');
       return;
     }
 
     try {
-      const response = await axios.post('http://gridawarecharging.com/api/register_device', {
+      const response = await axios.post('https://gridawarecharging.com/api/register_device', {
         api_key: API_KEY,
         user_jwt: jwtToken,
-        device_mac_address: macAddress,
+        device_mac_address: device.id,
       });
       Alert.alert('Success', 'Device registered successfully.');
+      setMacAddress(device.id); // Update macAddress state
     } catch (error) {
       Alert.alert('Error', 'Failed to register device.');
       console.error('Error registering device:', error);
     }
   };
 
+  // Unregister the selected Bluetooth device
   const unregisterDevice = async () => {
     if (!jwtToken || !macAddress) {
-      Alert.alert('Error', 'You need to log in and enter a valid MAC address.');
+      Alert.alert('Error', 'You need to log in and select a valid device.');
       return;
     }
 
     try {
-      const response = await axios.post('http://gridawarecharging.com/api/unregister_device_by_user', {
+      const response = await axios.post('https://gridawarecharging.com/api/unregister_device_by_user', {
         api_key: API_KEY,
         user_jwt: jwtToken,
         device_mac_address: macAddress,
       });
       Alert.alert('Success', 'Device unregistered successfully.');
+      setMacAddress(''); // It clears the macAddress
     } catch (error) {
       Alert.alert('Error', 'Failed to unregister device.');
       console.error('Error unregistering device:', error);
     }
   };
 
-  const getDevicesForUser = async () => {
-    if (!jwtToken) {
-      Alert.alert('Error', 'You need to log in first.');
-      return;
-    }
-
+  // Connect to the selected Bluetooth device
+  const connectToDevice = async (device) => {
     try {
-      const response = await axios.get('http://gridawarecharging.com/api/get_devices_for_user', {
-        params: {
-          api_key: API_KEY,
-          user_jwt: jwtToken,
-        },
-      });
-      setDevices(response.data.devices);
+      const connected = await manager.connectToDevice(device.id);
+      setConnectedDevice(connected);
+      Alert.alert('Success', `Connected to ${device.name || 'Unnamed Device'}`);
     } catch (error) {
-      Alert.alert('Error', 'Failed to fetch devices.');
-      console.error('Error fetching devices:', error);
+      console.error('Connection error:', error);
+      Alert.alert('Error', 'Failed to connect to device.');
     }
   };
+
+  // Disconnect Section From The Bluetooth Connected 
+  const disconnectFromDevice = async () => {
+    try {
+      if (connectedDevice) {
+        await manager.cancelDeviceConnection(connectedDevice.id);
+        setConnectedDevice(null);
+        Alert.alert('Success', 'Disconnected from device.');
+      } else {
+        Alert.alert('No device to disconnect');
+      }
+    } catch (error) {
+      console.error('Disconnection error:', error);
+      Alert.alert('Error', 'Failed to disconnect from device.');
+    }
+  };
+
+  // Clean up the manager on unmount to avoid memory leaks
+  useEffect(() => {
+    return () => {
+      manager.destroy();
+    };
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Text style={styles.headerText}>Bluetooth Device Management</Text>
-        
-        {/* MAC Address Input */}
-        <TextInput
-          style={styles.input}
-          placeholder="Enter MAC Address"
-          placeholderTextColor="#B0B0B0"
-          value={macAddress}
-          onChangeText={setMacAddress}
-        />
 
-        {/* Register Device Button */}
-        <TouchableOpacity style={styles.actionButton} onPress={registerDevice}>
-          <Text style={styles.buttonText}>Register Device</Text>
+        {/* Request Bluetooth Permission Button */}
+        <TouchableOpacity style={styles.actionButton} onPress={requestBluetoothPermissions}>
+          <Text style={styles.buttonText}>Request Bluetooth Permission</Text>
         </TouchableOpacity>
+
+        {/* Scan for Devices Button */}
+        <TouchableOpacity style={styles.actionButton} onPress={scanForDevices} disabled={isScanning}>
+          <Text style={styles.buttonText}>{isScanning ? 'Scanning...' : 'Scan for Bluetooth Devices'}</Text>
+        </TouchableOpacity>
+
+        {/* Scanned Devices List */}
+        {scannedDevices.length > 0 && (
+          <View style={styles.devicesList}>
+            <Text style={styles.sectionTitle}>Scanned Bluetooth Devices:</Text>
+            <FlatList
+              data={scannedDevices}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.deviceItem}
+                  onPress={() => {
+                    setSelectedDevice(item);
+                    registerDevice(item);  // Register device after selecting it
+                  }}
+                >
+                  <Text style={styles.deviceText}>
+                    {item.name || 'Unnamed Device'} (ID: {item.id})
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        )}
+
+        {/* Connect to Device Button */}
+        {selectedDevice && (
+          <TouchableOpacity style={styles.actionButton} onPress={() => connectToDevice(selectedDevice)}>
+            <Text style={styles.buttonText}>Connect to Device</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Disconnect from Device Button */}
+        {connectedDevice && (
+          <TouchableOpacity style={styles.actionButton} onPress={disconnectFromDevice}>
+            <Text style={styles.buttonText}>Disconnect from Device</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Unregister Device Button */}
         <TouchableOpacity style={styles.actionButton} onPress={unregisterDevice}>
           <Text style={styles.buttonText}>Unregister Device</Text>
         </TouchableOpacity>
-
-        {/* Get Devices Button */}
-        <TouchableOpacity style={styles.actionButton} onPress={getDevicesForUser}>
-          <Text style={styles.buttonText}>Get Registered Devices</Text>
-        </TouchableOpacity>
-
-        {/* Display Registered Devices */}
-        {devices.length > 0 && (
-          <View style={styles.devicesList}>
-            <Text style={styles.sectionTitle}>Registered Devices:</Text>
-            {devices.map((device, index) => (
-              <Text key={index} style={styles.deviceText}>
-                {device.device_mac_address}
-              </Text>
-            ))}
-          </View>
-        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -189,10 +303,15 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     textAlign: 'center',
   },
+  deviceItem: {
+    padding: 10,
+    backgroundColor: '#1A1E3A',
+    borderRadius: 8,
+    marginBottom: 10,
+  },
   deviceText: {
     fontSize: 16,
     color: '#FFFFFF',
-    marginBottom: 5,
     textAlign: 'center',
   },
 });
