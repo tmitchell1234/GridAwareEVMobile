@@ -39,7 +39,9 @@ export default function Index() {
       <TouchableOpacity style={styles.signupButton} onPress={() => router.push("(auth)/register")}>
         <Text style={styles.signupButtonText}>Create new account</Text>
       </TouchableOpacity>
-      <Text style={styles.forgotText}>Forgot password?</Text>
+      <TouchableOpacity style={styles.forgotText} onPress={() => router.push("/(auth)/forgot")}>
+        <Text style={styles.forgotText}>Forgot password?</Text>
+      </TouchableOpacity>
       <View style={styles.aboutUsContainer}>
         <Text style={styles.aboutUsText}>About Us</Text>
       </View>

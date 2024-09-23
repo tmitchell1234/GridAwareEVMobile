@@ -89,21 +89,21 @@ const Dashboard = () => {
           onPress={() => router.push('(dashoptions)/graphsec')}
           activeOpacity={0.8}
         >
-          <Text style={styles.buttonText}>Graph Sections</Text>
+          <Text style={styles.buttonText}>Frequency</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.sectionButton} 
           onPress={() => router.push('(dashoptions)/statusspeed')}
           activeOpacity={0.8}
         >
-          <Text style={styles.buttonText}>Status & Speed</Text>
+          <Text style={styles.buttonText}>Current</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.sectionButton} 
           onPress={() => router.push('(dashoptions)/timedisplay')}
           activeOpacity={0.8}
         >
-          <Text style={styles.buttonText}>Time Displays</Text>
+          <Text style={styles.buttonText}>Voltage</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.sectionButton} 
