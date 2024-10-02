@@ -79,21 +79,23 @@ const Bluetooth = () => {
           return;
         }
 
-        // Filter ESP32 devices and prevent duplicates by checking MAC address (device ID)
+        // Filter ESP32 devices by name and prevent duplicates by checking MAC address (device.id)
         if (
           device &&
-          device.name &&
-          device.name.startsWith(ESP32_PREFIX) &&
-          !scannedDevices.some(d => d.id === device.id)
+          device.id &&
+          device.name && // Check that the device has a name
+          device.name.startsWith(ESP32_PREFIX) && // Check if it starts with the ESP32_PREFIX
+          !scannedDevices.some(d => d.id === device.id) // Prevent duplicates by checking id (MAC address)
         ) {
-          setScannedDevices(prevDevices => [...prevDevices, device]);
+          // Add the ESP32 device to the list of scanned devices
+          setScannedDevices(prevDevices => [...prevDevices, { ...device, name: 'ESP32', id: device.id }]);
 
           // Stop scanning as soon as an ESP32 device is found
           manager.stopDeviceScan();
           setIsScanning(false);
 
-          // Optionally, automatically connect to the device (if required)
-          Alert.alert('Device Found', `Found ${device.name}. You can connect now.`);
+          // Alert user with the found device and its MAC address
+          Alert.alert('ESP32 Found', `Found ESP32 with MAC Address: ${device.id}. You can connect now.`);
         }
       });
 
@@ -113,7 +115,27 @@ const Bluetooth = () => {
     }
   };
 
-  // Connect to the selected Bluetooth device
+  // Automatically send user_jwt after connecting
+  const sendUserJWT = async (device) => {
+    if (!jwtToken) {
+      console.error('No JWT available to send.');
+      return;
+    }
+    
+    try {
+      const characteristic = await device.writeCharacteristicWithResponseForService(
+        SERVICE_UUID,
+        CHARACTERISTIC_UUID,
+        Buffer.from(JSON.stringify({jwt: jwtToken })).toString('base64')
+      );
+      console.log('JWT sent successfully');
+    } catch (error) {
+      console.error('Error sending JWT:', error);
+      Alert.alert('Error', 'Failed to send JWT.');
+    }
+  };
+
+  // Connect to the selected Bluetooth device and send user_jwt automatically
   const connectToDevice = async (device) => {
     try {
       const connected = await manager.connectToDevice(device.id);
@@ -135,6 +157,9 @@ const Bluetooth = () => {
 
       setScannedDevices([]); // Clear scanned devices once connected
       Alert.alert('Success', `Connected to ${device.name || 'Unnamed Device'}`);
+
+      // Send the user JWT in the background
+      sendUserJWT(connected);
     } catch (error) {
       console.error('Connection error:', error);
       Alert.alert('Error', error.message || 'Failed to connect to device.');
