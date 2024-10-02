@@ -12,7 +12,21 @@ const ForgotPassword = () => {
   const [newPassword, setNewPassword] = useState('');
   const [step, setStep] = useState(1); // Step 1 for email, Step 2 for code & new password
   const [showSuccess, setShowSuccess] = useState(false); // Flag for success message
+  const [showPassword, setShowPassword] = useState(false); // Toggle for showing/hiding password
+  const [isValidLength, setIsValidLength] = useState(false);
+  const [hasSpecialChar, setHasSpecialChar] = useState(false);
+  const [hasLowercase, setHasLowercase] = useState(false);
+  const [hasNumber, setHasNumber] = useState(false);
   const router = useRouter();
+
+  // Function to validate password criteria
+  const validatePassword = (password) => {
+    setIsValidLength(password.length >= 12);
+    setHasSpecialChar(/[!@#$%^&*(),.?":{}|<>]/.test(password));
+    setHasLowercase(/[a-z]/.test(password));
+    setHasNumber(/[0-9]/.test(password));
+    setNewPassword(password);
+  };
 
   // Function to send reset email
   const sendResetEmail = async () => {
@@ -59,7 +73,7 @@ const ForgotPassword = () => {
         // Navigate back to index after a delay
         setTimeout(() => {
           router.push('/'); // Navigate to index
-        }, 3000); // Delay of 3 seconds for showing success message
+        }, 3000); // Up for 3 seconds for showing success message
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to reset password. Please check the code and try again.');
@@ -106,14 +120,31 @@ const ForgotPassword = () => {
               onChangeText={setResetCode}
               keyboardType="numeric"
             />
-            <TextInput
-              style={styles.input}
-              placeholder="Enter new password"
-              placeholderTextColor="#B0B0B0"
-              value={newPassword}
-              onChangeText={setNewPassword}
-              secureTextEntry={true}
-            />
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter new password"
+                placeholderTextColor="#B0B0B0"
+                value={newPassword}
+                onChangeText={validatePassword}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.showHideButton}
+              >
+                <Text style={styles.showHideText}>{showPassword ? 'Hide' : 'Show'}</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Password Validation Status */}
+            <View style={styles.passwordCriteria}>
+              <Text style={isValidLength ? styles.valid : styles.invalid}>Minimum 12 characters</Text>
+              <Text style={hasSpecialChar ? styles.valid : styles.invalid}>At least 1 special character</Text>
+              <Text style={hasLowercase ? styles.valid : styles.invalid}>At least 1 lowercase letter</Text>
+              <Text style={hasNumber ? styles.valid : styles.invalid}>At least 1 number</Text>
+            </View>
+
             <TouchableOpacity style={styles.actionButton} onPress={resetPassword}>
               <Text style={styles.buttonText}>Reset Password</Text>
             </TouchableOpacity>
@@ -190,6 +221,28 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  showHideButton: {
+    position: 'absolute',
+    right: 10,
+  },
+  showHideText: {
+    color: '#4D9FF9',
+    fontWeight: 'bold',
+  },
+  passwordCriteria: {
+    marginBottom: 20,
+  },
+  valid: {
+    color: 'green',
+  },
+  invalid: {
+    color: 'red',
   },
 });
 

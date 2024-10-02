@@ -12,6 +12,7 @@ const LogIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [logoAnimation] = useState(new Animated.Value(0)); // Animation state for the logo
+  const [showPassword, setShowPassword] = useState(false); // Toggle for showing/hiding password
 
   // Access the API_KEY from app.json
   const API_KEY = Constants.expoConfig.extra.API_KEY;
@@ -56,13 +57,12 @@ const LogIn = () => {
       console.log('Response Data:', response.data);
 
       if (response.status === 200) {
-        const userJwt = response.data.token;  // Extract JWT from response
+        const userJwt = response.data.token;  // Get JWT from response
         const userEmail = response.data.email || '';
         await AsyncStorage.setItem('userJwt', userJwt);  // Store JWT in AsyncStorage
         await AsyncStorage.setItem('email', userEmail);
 
         router.replace('(tabs)/Dashboard'); // Navigate to dashboard on success
-        // once logged in, the user can only access the login page by logging out.
       } else {
         Alert.alert('Login Failed', response.data.message || 'Invalid email or password');
       }
@@ -105,14 +105,23 @@ const LogIn = () => {
         keyboardType="email-address"
         autoCapitalize="none"
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="#B0B0B0"
-        secureTextEntry={true}
-        value={password}
-        onChangeText={setPassword}
-      />
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          placeholderTextColor="#B0B0B0"
+          secureTextEntry={!showPassword} // Toggle secureTextEntry based on showPassword state
+          value={password}
+          onChangeText={setPassword}
+        />
+        <TouchableOpacity
+          onPress={() => setShowPassword(!showPassword)}
+          style={styles.showHideButton}
+        >
+          <Text style={styles.showHideText}>{showPassword ? 'Hide' : 'Show'}</Text>
+        </TouchableOpacity>
+      </View>
+
       <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
         <Text style={styles.loginButtonText}>Log In</Text>
       </TouchableOpacity>
@@ -157,6 +166,20 @@ const styles = StyleSheet.create({
   loginButtonText: {
     color: '#FFFFFF',
     fontSize: 18,
+    fontWeight: 'bold',
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'relative',
+    width: '100%',
+  },
+  showHideButton: {
+    position: 'absolute',
+    right: 10,
+  },
+  showHideText: {
+    color: '#4D9FF9',
     fontWeight: 'bold',
   },
 });

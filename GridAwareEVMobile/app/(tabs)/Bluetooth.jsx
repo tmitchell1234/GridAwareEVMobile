@@ -1,21 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert, ScrollView, FlatList, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert, ScrollView, FlatList } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BleManager } from 'react-native-ble-plx';
 import { requestMultiple, PERMISSIONS, RESULTS } from 'react-native-permissions';
-import axios from 'axios';
-import Constants from 'expo-constants'; 
+import { Buffer } from 'buffer';  // Import Buffer
+import Constants from 'expo-constants';
 
 const manager = new BleManager();
-const API_KEY = Constants.expoConfig.extra.API_KEY;  // API_KEY, can be found in app.json
+const API_KEY = Constants.expoConfig.extra.API_KEY;  // API_KEY from app.json
+
+const ESP32_PREFIX = 'ESP32';  // Filter ESP32 devices by name
+const SERVICE_UUID = "12345678-1234-1234-1234-123456789abc";  // Service UUID
+const CHARACTERISTIC_UUID = "87654321-4321-4321-4321-cba987654321";  // Characteristic UUID
 
 const Bluetooth = () => {
   const [jwtToken, setJwtToken] = useState(null);
   const [scannedDevices, setScannedDevices] = useState([]); // Scanned Bluetooth devices
   const [selectedDevice, setSelectedDevice] = useState(null); // Selected Bluetooth device
-  const [isScanning, setIsScanning] = useState(false); // Scanning state
   const [connectedDevice, setConnectedDevice] = useState(null); // Currently connected Bluetooth device
-  const [macAddress, setMacAddress] = useState(''); // MAC Address state
+  const [isScanning, setIsScanning] = useState(false); // Scanning state
+  const [wifiSSID, setWifiSSID] = useState(''); // Wi-Fi SSID
+  const [wifiPassword, setWifiPassword] = useState(''); // Wi-Fi Password
+  const [showPassword, setShowPassword] = useState(false); // Show/Hide password state
+  const [sendingCredentials, setSendingCredentials] = useState(false); // Sending state
 
   // Retrieve the JWT token from AsyncStorage when the component mounts
   useEffect(() => {
@@ -37,22 +44,13 @@ const Bluetooth = () => {
   // Request Bluetooth and Location permissions for both iOS and Android
   const requestBluetoothPermissions = async () => {
     try {
-      if (Platform.OS === 'android') {
-        const permissions = [
-          PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
-          PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
-          PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION
-        ];
-        const results = await requestMultiple(permissions);
-        handlePermissionsResult(results);
-      } else if (Platform.OS === 'ios') {
-        const permissions = [
-          PERMISSIONS.IOS.BLUETOOTH_PERIPHERAL,
-          PERMISSIONS.IOS.LOCATION_WHEN_IN_USE
-        ];
-        const results = await requestMultiple(permissions);
-        handlePermissionsResult(results);
-      }
+      const permissions = [
+        PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
+        PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
+        PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+      ];
+      const results = await requestMultiple(permissions);
+      handlePermissionsResult(results);
     } catch (error) {
       console.error('Permission error:', error);
       Alert.alert('Error', 'Failed to request Bluetooth permission.');
@@ -61,15 +59,7 @@ const Bluetooth = () => {
 
   // Handle permission results for both platforms
   const handlePermissionsResult = (results) => {
-    let allGranted = true;
-
-    for (const permission in results) {
-      if (results[permission] !== RESULTS.GRANTED) {
-        allGranted = false;
-        break;
-      }
-    }
-
+    const allGranted = Object.values(results).every(result => result === RESULTS.GRANTED);
     if (allGranted) {
       Alert.alert('Permission granted', 'You can now scan for Bluetooth devices.');
     } else {
@@ -77,7 +67,7 @@ const Bluetooth = () => {
     }
   };
 
-  // Scan for Bluetooth devices
+  // Scan for Bluetooth devices, ensuring no repeats and filtering ESP32 devices only
   const scanForDevices = async () => {
     setIsScanning(true);
     try {
@@ -89,62 +79,37 @@ const Bluetooth = () => {
           return;
         }
 
-        if (device && !scannedDevices.some((d) => d.id === device.id)) {
-          setScannedDevices((prevDevices) => [...prevDevices, device]);
+        // Filter ESP32 devices and prevent duplicates by checking MAC address (device ID)
+        if (
+          device &&
+          device.name &&
+          device.name.startsWith(ESP32_PREFIX) &&
+          !scannedDevices.some(d => d.id === device.id)
+        ) {
+          setScannedDevices(prevDevices => [...prevDevices, device]);
+
+          // Stop scanning as soon as an ESP32 device is found
+          manager.stopDeviceScan();
+          setIsScanning(false);
+
+          // Optionally, automatically connect to the device (if required)
+          Alert.alert('Device Found', `Found ${device.name}. You can connect now.`);
         }
       });
 
-      //  It stop scanning after 5 seconds
+      // Stop scanning after 10 seconds if no devices are found
       setTimeout(() => {
-        manager.stopDeviceScan();
-        setIsScanning(false);
-        Alert.alert('Scanning stopped', 'Finished scanning for devices.');
-      }, 5000);
+        if (isScanning) {
+          manager.stopDeviceScan();
+          setIsScanning(false);
+          if (scannedDevices.length === 0) {
+            Alert.alert('No ESP32 Devices Found', 'Try scanning again.');
+          }
+        }
+      }, 10000); // Timeout duration can be adjusted
     } catch (error) {
       console.error('Error while scanning:', error);
       setIsScanning(false);
-    }
-  };
-
-  // Register the selected Bluetooth device
-  const registerDevice = async (device) => {
-    if (!jwtToken || !device) {
-      Alert.alert('Error', 'You need to log in and select a valid device.');
-      return;
-    }
-
-    try {
-      const response = await axios.post('https://gridawarecharging.com/api/register_device', {
-        api_key: API_KEY,
-        user_jwt: jwtToken,
-        device_mac_address: device.id,
-      });
-      Alert.alert('Success', 'Device registered successfully.');
-      setMacAddress(device.id); // Update macAddress state
-    } catch (error) {
-      Alert.alert('Error', 'Failed to register device.');
-      console.error('Error registering device:', error);
-    }
-  };
-
-  // Unregister the selected Bluetooth device
-  const unregisterDevice = async () => {
-    if (!jwtToken || !macAddress) {
-      Alert.alert('Error', 'You need to log in and select a valid device.');
-      return;
-    }
-
-    try {
-      const response = await axios.post('https://gridawarecharging.com/api/unregister_device_by_user', {
-        api_key: API_KEY,
-        user_jwt: jwtToken,
-        device_mac_address: macAddress,
-      });
-      Alert.alert('Success', 'Device unregistered successfully.');
-      setMacAddress(''); // It clears the macAddress
-    } catch (error) {
-      Alert.alert('Error', 'Failed to unregister device.');
-      console.error('Error unregistering device:', error);
     }
   };
 
@@ -152,15 +117,55 @@ const Bluetooth = () => {
   const connectToDevice = async (device) => {
     try {
       const connected = await manager.connectToDevice(device.id);
-      setConnectedDevice(connected);
+      setConnectedDevice(connected); // Set the connected device
+      const services = await connected.discoverAllServicesAndCharacteristics();
+      const availableServices = await connected.services();
+      
+      // Confirm the correct service is available
+      const service = availableServices.find(s => s.uuid === SERVICE_UUID);
+      if (!service) {
+        throw new Error(`Service ${SERVICE_UUID} not found`);
+      }
+
+      const characteristics = await service.characteristics();
+      const characteristic = characteristics.find(c => c.uuid === CHARACTERISTIC_UUID);
+      if (!characteristic) {
+        throw new Error(`Characteristic ${CHARACTERISTIC_UUID} not found`);
+      }
+
+      setScannedDevices([]); // Clear scanned devices once connected
       Alert.alert('Success', `Connected to ${device.name || 'Unnamed Device'}`);
     } catch (error) {
       console.error('Connection error:', error);
-      Alert.alert('Error', 'Failed to connect to device.');
+      Alert.alert('Error', error.message || 'Failed to connect to device.');
     }
   };
 
-  // Disconnect Section From The Bluetooth Connected 
+  // Send Wi-Fi credentials to the ESP32
+  const sendWifiCredentials = async () => {
+    if (!wifiSSID || !wifiPassword) {
+      Alert.alert('Error', 'Please enter both SSID and password.');
+      return;
+    }
+
+    setSendingCredentials(true);
+    try {
+      const characteristic = await connectedDevice.writeCharacteristicWithResponseForService(
+        SERVICE_UUID,
+        CHARACTERISTIC_UUID,
+        Buffer.from(JSON.stringify({ wifi: wifiSSID, password: wifiPassword })).toString('base64')
+      );
+
+      Alert.alert('Credentials Sent', `SSID: ${wifiSSID} and password sent to the ESP32.`);
+      setSendingCredentials(false);
+    } catch (error) {
+      console.error('Error sending Wi-Fi credentials:', error);
+      Alert.alert('Error', 'Failed to send Wi-Fi credentials.');
+      setSendingCredentials(false);
+    }
+  };
+
+  // Disconnect from the Bluetooth device
   const disconnectFromDevice = async () => {
     try {
       if (connectedDevice) {
@@ -195,51 +200,73 @@ const Bluetooth = () => {
 
         {/* Scan for Devices Button */}
         <TouchableOpacity style={styles.actionButton} onPress={scanForDevices} disabled={isScanning}>
-          <Text style={styles.buttonText}>{isScanning ? 'Scanning...' : 'Scan for Bluetooth Devices'}</Text>
+          <Text style={styles.buttonText}>{isScanning ? 'Scanning...' : 'Scan for ESP32 Devices'}</Text>
         </TouchableOpacity>
 
         {/* Scanned Devices List */}
         {scannedDevices.length > 0 && (
-          <View style={styles.devicesList}>
-            <Text style={styles.sectionTitle}>Scanned Bluetooth Devices:</Text>
-            <FlatList
-              data={scannedDevices}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.deviceItem}
-                  onPress={() => {
-                    setSelectedDevice(item);
-                    registerDevice(item);  // Register device after selecting it
-                  }}
-                >
-                  <Text style={styles.deviceText}>
-                    {item.name || 'Unnamed Device'} (ID: {item.id})
-                  </Text>
-                </TouchableOpacity>
-              )}
-            />
-          </View>
+          <FlatList
+            data={scannedDevices}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.deviceItem}
+                onPress={() => {
+                  setSelectedDevice(item);
+                  connectToDevice(item); // Connect to device after selecting it
+                }}
+              >
+                <Text style={styles.deviceText}>
+                  {item.name || 'Unnamed Device'} (ID: {item.id})
+                </Text>
+              </TouchableOpacity>
+            )}
+          />
         )}
 
-        {/* Connect to Device Button */}
-        {selectedDevice && (
-          <TouchableOpacity style={styles.actionButton} onPress={() => connectToDevice(selectedDevice)}>
-            <Text style={styles.buttonText}>Connect to Device</Text>
-          </TouchableOpacity>
-        )}
-
-        {/* Disconnect from Device Button */}
+        {/* Connected Device Section */}
         {connectedDevice && (
-          <TouchableOpacity style={styles.actionButton} onPress={disconnectFromDevice}>
-            <Text style={styles.buttonText}>Disconnect from Device</Text>
-          </TouchableOpacity>
-        )}
+          <>
+            <Text style={styles.connectedText}>Connected to {connectedDevice.name || 'Unnamed Device'}</Text>
 
-        {/* Unregister Device Button */}
-        <TouchableOpacity style={styles.actionButton} onPress={unregisterDevice}>
-          <Text style={styles.buttonText}>Unregister Device</Text>
-        </TouchableOpacity>
+            {/* Wi-Fi Credentials Input */}
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Wi-Fi SSID"
+                placeholderTextColor="#B0B0B0"
+                value={wifiSSID}
+                onChangeText={setWifiSSID}
+              />
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Wi-Fi Password"
+                  placeholderTextColor="#B0B0B0"
+                  secureTextEntry={!showPassword}
+                  value={wifiPassword}
+                  onChangeText={setWifiPassword}
+                />
+                <TouchableOpacity
+                  style={styles.showPasswordButton}
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Text style={styles.showPasswordText}>{showPassword ? 'Hide' : 'Show'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Send Credentials Button */}
+            <TouchableOpacity style={styles.actionButton} onPress={sendWifiCredentials} disabled={sendingCredentials}>
+              <Text style={styles.buttonText}>{sendingCredentials ? 'Sending...' : 'Send Wi-Fi Credentials'}</Text>
+            </TouchableOpacity>
+
+            {/* Disconnect from Device Button */}
+            <TouchableOpacity style={styles.actionButton} onPress={disconnectFromDevice}>
+              <Text style={styles.buttonText}>Disconnect from Device</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -275,6 +302,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     textAlign: 'center',
   },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  showPasswordButton: {
+    marginLeft: 10,
+  },
+  showPasswordText: {
+    color: '#4D9FF9',
+    fontWeight: 'bold',
+  },
   actionButton: {
     backgroundColor: '#4D9FF9',
     padding: 15,
@@ -293,16 +331,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  devicesList: {
-    marginTop: 30,
-    width: '100%',
-  },
-  sectionTitle: {
-    fontSize: 20,
-    color: '#FF6F3C',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
   deviceItem: {
     padding: 10,
     backgroundColor: '#1A1E3A',
@@ -312,6 +340,13 @@ const styles = StyleSheet.create({
   deviceText: {
     fontSize: 16,
     color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  connectedText: {
+    fontSize: 18,
+    color: '#00FF00',
+    fontWeight: 'bold',
+    marginBottom: 20,
     textAlign: 'center',
   },
 });

@@ -18,8 +18,11 @@ const Register = () => {
   const [hasLowercase, setHasLowercase] = useState(false);
   const [hasNumber, setHasNumber] = useState(false);
 
-  const API_KEY = Constants.expoConfig.extra.API_KEY;
+  // Show/Hide password toggles
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const API_KEY = Constants.expoConfig.extra.API_KEY;
   const router = useRouter();
   const [buttonScale] = useState(new Animated.Value(1)); // For button press animation
 
@@ -120,18 +123,26 @@ const Register = () => {
         onChangeText={setLastName}
       />
       
-      {/* Password Input */}
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="#B0B0B0"
-        secureTextEntry={true}
-        value={password}
-        onChangeText={(text) => {
-          setPassword(text);
-          validatePassword(text);  // Validate password as the user types
-        }}
-      />
+      {/* Password Input with Show/Hide functionality */}
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          placeholderTextColor="#B0B0B0"
+          secureTextEntry={!showPassword} // Toggle password visibility
+          value={password}
+          onChangeText={(text) => {
+            setPassword(text);
+            validatePassword(text);  // Validate password as the user types
+          }}
+        />
+        <TouchableOpacity
+          onPress={() => setShowPassword(!showPassword)}
+          style={styles.showHideButton}
+        >
+          <Text style={styles.showHideText}>{showPassword ? 'Hide' : 'Show'}</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Password Validation Display */}
       <View style={styles.passwordValidationContainer}>
@@ -149,14 +160,23 @@ const Register = () => {
         </Text>
       </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Confirm Password"
-        placeholderTextColor="#B0B0B0"
-        secureTextEntry={true}
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-      />
+      {/* Confirm Password Input with Show/Hide functionality */}
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Confirm Password"
+          placeholderTextColor="#B0B0B0"
+          secureTextEntry={!showConfirmPassword} // Toggle confirm password visibility
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+        />
+        <TouchableOpacity
+          onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+          style={styles.showHideButton}
+        >
+          <Text style={styles.showHideText}>{showConfirmPassword ? 'Hide' : 'Show'}</Text>
+        </TouchableOpacity>
+      </View>
 
       <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
         <TouchableOpacity style={styles.continueButton} onPress={handleRegister}>
@@ -167,7 +187,7 @@ const Register = () => {
   );
 };
 
-// Style Process Below - For Now just keeping all in one location to make it easier for me. 
+// Style Definitions
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -211,6 +231,20 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderColor: '#4D9FF9',
     borderWidth: 1,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'relative',
+    width: '100%',
+  },
+  showHideButton: {
+    position: 'absolute',
+    right: 10,
+  },
+  showHideText: {
+    color: '#4D9FF9',
+    fontWeight: 'bold',
   },
   continueButton: {
     backgroundColor: '#FF6F3C',

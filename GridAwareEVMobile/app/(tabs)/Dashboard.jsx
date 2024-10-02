@@ -86,14 +86,15 @@ const Dashboard = () => {
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
         <TouchableOpacity 
           style={styles.sectionButton} 
-          onPress={() => router.push('(dashoptions)/graphsec')}
+          onPress={() => router.push('(dashoptions)/frequencygraph')}
           activeOpacity={0.8}
         >
           <Text style={styles.buttonText}>Frequency</Text>
         </TouchableOpacity>
+        
         <TouchableOpacity 
           style={styles.sectionButton} 
-          onPress={() => router.push('(dashoptions)/statusspeed')}
+          onPress={() => router.push('(dashoptions)/graphsec')}
           activeOpacity={0.8}
         >
           <Text style={styles.buttonText}>Current</Text>
