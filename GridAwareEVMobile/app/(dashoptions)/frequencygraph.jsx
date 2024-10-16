@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, StyleSheet, Image, Dimensions, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
-import { LineChart } from 'react-native-chart-kit';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
+import { LineChart } from 'react-native-gifted-charts';
 
 const API_KEY = Constants.expoConfig.extra.API_KEY;
 
 const FrequencyGraph = () => {
   const [allData, setAllData] = useState([]); // Store all data from the endpoint
   const [chartData, setChartData] = useState([]); // Data to display on the graph (Frequency)
-  const [labels, setLabels] = useState([]); // Labels for the graph (Time in seconds)
+  const [labels, setLabels] = useState([]); // Labels for the graph (Time in seconds, starting from 0)
   const [isLoading, setIsLoading] = useState(true); // Track loading
   const [displayLimit, setDisplayLimit] = useState(10); // Control how much data to display at once
 
@@ -23,20 +23,7 @@ const FrequencyGraph = () => {
       : parsedFrequency;
   };
 
-  // Function to parse and format the date string into seconds
-  const parseDateString = (dateString) => {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) throw new Error("Invalid Date");
-      // Convert the time to seconds or keep the hour:minute:second format
-      return date.getSeconds(); // Return the seconds part of the date
-    } catch (error) {
-      console.error("Date parsing error: ", error.message);
-      return ""; // Fallback empty string on error
-    }
-  };
-
-  // Fetch frequency data from the API
+  // Function to fetch frequency data from the API
   const fetchFrequencyData = async () => {
     setIsLoading(true); // Start loading
     console.log("Fetching data from the API...");
@@ -73,12 +60,12 @@ const FrequencyGraph = () => {
     setIsLoading(false); // Stop loading
   };
 
-  // Function to update chart data
+  // Function to update chart data (start seconds from 0 and increment by 1)
   const updateGraphData = (data) => {
-    const newLabels = data.map(entry => parseDateString(entry.time)); // Use seconds as labels
-    const newFrequencies = data.map(entry => sanitizeFrequency(entry.frequency)); // Use frequencies for Y-axis
+    const newLabels = data.map((_, index) => index + 1); // Increment seconds starting from 1
+    const newFrequencies = data.map(entry => sanitizeFrequency(entry.frequency).toFixed(2));
 
-    setLabels(newLabels); // X-axis labels (time in seconds)
+    setLabels(newLabels); // X-axis labels (incremental seconds)
     setChartData(newFrequencies); // Y-axis data (frequency)
     console.log("Updated chart data (Hz):", newFrequencies); // Debugging log for frequencies
     console.log("Updated labels (Time in seconds):", newLabels); // Debugging log for time labels
@@ -98,13 +85,7 @@ const FrequencyGraph = () => {
   // Fetch initial data after component mounts
   useEffect(() => {
     fetchFrequencyData();
-
-    const intervalId = setInterval(() => {
-      fetchFrequencyData(); // Fetch new data every 10 seconds
-    }, 10000);
-
-    return () => clearInterval(intervalId); // Cleanup interval on unmount
-  }, []);
+  }, []); // This ensures we only fetch data when the component mounts
 
   return (
     <SafeAreaView style={styles.container}>
@@ -121,30 +102,29 @@ const FrequencyGraph = () => {
         </View>
       )}
 
+      {/* Log the final data and labels just before rendering the chart */}
+      {console.log("Final chartData for rendering:", chartData)}
+      {console.log("Final labels for rendering:", labels)}
+
       <View style={styles.chartContainer}>
         <LineChart
-          data={{
-            labels: labels, // Time (in seconds)
-            datasets: [{ data: chartData }] // Frequency (in Hz)
-          }}
+          data={chartData.map((value, index) => ({
+            value: parseFloat(value),
+            label: labels[index].toString(),
+          }))}
           width={Dimensions.get('window').width - 40} // Adjust width based on screen size
           height={220}
           yAxisSuffix=" Hz"
           yAxisInterval={1} // Control the intervals
-          chartConfig={{
-            backgroundGradientFrom: '#0A0E27',
-            backgroundGradientTo: '#0A0E27',
-            color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-            style: { borderRadius: 16 },
-            propsForDots: {
-              r: '4',
-              strokeWidth: '2',
-              stroke: '#FF6F3C',
-            },
+          isAnimated
+          showDots
+          color="#FF6F3C"
+          showLine
+          lineConfig={{
+            strokeWidth: 2,
+            color: "#FF6F3C",
+            curved: true, // Makes the line curve
           }}
-          bezier
-          style={{ marginVertical: 20, borderRadius: 16 }}
         />
       </View>
 
@@ -163,7 +143,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
   logo: { width: 50, height: 50, borderRadius: 25, marginRight: 10 },
   headerText: { color: 'white', fontSize: 24, fontWeight: 'bold' },
-  chartContainer: { flexDirection: 'row', height: 220, padding: 10 },
+  chartContainer: { height: 220, padding: 10 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { color: '#FFF', fontSize: 18, marginTop: 10 },
   loadMoreButton: {
