@@ -73,7 +73,8 @@
       "eas": {
         "projectId": "c7fd3b43-0b76-4de2-a871-894d700146bd"
       },
-      "API_KEY": "nSCBzZ6LnWiVOUYPzB3AipGKmnh4Gk9OSLiOXypaUgM="
+      "API_KEY": "nSCBzZ6LnWiVOUYPzB3AipGKmnh4Gk9OSLiOXypaUgM=",
+      "jsEngine": "jsc"
     }
   }
 }
