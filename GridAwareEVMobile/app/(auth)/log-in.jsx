@@ -40,9 +40,35 @@ const LogIn = () => {
     animateLogo();
   }, []);
 
+  // Function to fetch user info after login
+  const fetchUserInfo = async (userJwt) => {
+    try {
+      const response = await axios.post('https://gridawarecharging.com/api/get_user_info', {
+        api_key: API_KEY,
+        user_jwt: userJwt
+      });
+
+      const userInfo = response.data;
+      console.log('User Info:', userInfo);
+
+      // Store user information in AsyncStorage
+      await AsyncStorage.setItem('userFirstName', userInfo.user_first_name || '');
+      await AsyncStorage.setItem('userLastName', userInfo.user_last_name || '');
+      await AsyncStorage.setItem('userEmail', userInfo.user_email || '');
+
+      // Log user information
+      console.log("Stored First Name:", userInfo.user_first_name);
+      console.log("Stored Last Name:", userInfo.user_last_name);
+      console.log("Stored Email:", userInfo.user_email);
+
+    } catch (error) {
+      console.error('Error fetching user info:', error);
+      Alert.alert('Error', 'Unable to fetch user information.');
+    }
+  };
+
   const handleLogin = async () => {
     try {
-      // Log the API request details
       console.log('API Key:', API_KEY); // Log the API key to verify it
       console.log('Sending login request with:', { email, password });
 
@@ -58,26 +84,25 @@ const LogIn = () => {
 
       if (response.status === 200) {
         const userJwt = response.data.token;  // Get JWT from response
-        const userEmail = response.data.email || '';
         await AsyncStorage.setItem('userJwt', userJwt);  // Store JWT in AsyncStorage
-        await AsyncStorage.setItem('email', userEmail);
 
-        router.replace('(tabs)/Dashboard'); // Navigate to dashboard on success
+        // Call the function to fetch and store user info
+        fetchUserInfo(userJwt);
+
+        // Navigate to dashboard on success
+        router.replace('(tabs)/Dashboard');
       } else {
         Alert.alert('Login Failed', response.data.message || 'Invalid email or password');
       }
     } catch (error) {
       // Detailed error handling with axios
       if (error.response) {
-        // Server responded with a status other than 2xx
         console.error('Login error (response):', error.response.data);
         Alert.alert('Login Failed', error.response.data.message || 'Something went wrong. Please try again.');
       } else if (error.request) {
-        // Request was made but no response was received
         console.error('Login error (request):', error.request);
         Alert.alert('Error', 'No response from server. Please check your connection.');
       } else {
-        // Something else happened while making the request
         console.error('Login error:', error.message);
         Alert.alert('Error', 'Something went wrong. Please try again.');
       }
@@ -129,7 +154,7 @@ const LogIn = () => {
   );
 }
 
-//Style Process Below - For Now just keeping all in one location to make it easier for me. 
+// Style definitions
 const styles = StyleSheet.create({
   container: {
     flex: 1,

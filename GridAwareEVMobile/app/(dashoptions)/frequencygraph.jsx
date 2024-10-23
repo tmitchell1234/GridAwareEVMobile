@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { SafeAreaView, View, Text, StyleSheet, Dimensions, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
+import { SafeAreaView, View, Text, StyleSheet, Dimensions, ActivityIndicator, Alert, TouchableOpacity, ScrollView } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
@@ -100,8 +100,9 @@ const FrequencyGraph = () => {
     },
   };
 
-  // Screen width
+  // Screen width and dynamic height for devices
   const screenWidth = Dimensions.get("window").width;
+  const graphHeight = Dimensions.get("window").height * 0.45; // Set graph height to 45% of the screen height
 
   // If data is loading, show an Activity Indicator
   if (isLoading) {
@@ -121,27 +122,29 @@ const FrequencyGraph = () => {
         <Text style={styles.headerText}>Frequency Graph</Text>
       </View>
 
-      {/* Line Chart */}
-      <View style={styles.chartContainer}>
-        <LineChart
-          data={{
-            labels: labels, // X-axis (time in seconds)
-            datasets: [
-              {
-                data: chartData, // Y-axis (frequency data)
-              },
-            ],
-          }}
-          width={screenWidth - 40} // Width of the chart
-          height={250} // Height of the chart
-          chartConfig={chartConfig}
-          bezier // Smooth line
-          style={{
-            marginVertical: 20,
-            borderRadius: 16,
-          }}
-        />
-      </View>
+      {/* Scrollable View for Graph */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <View style={styles.chartContainer}>
+          <LineChart
+            data={{
+              labels: labels, // X-axis (time in seconds)
+              datasets: [
+                {
+                  data: chartData, // Y-axis (frequency data)
+                },
+              ],
+            }}
+            width={screenWidth * 2} // Allow horizontal scrolling for larger datasets
+            height={graphHeight} // Dynamic height
+            chartConfig={chartConfig}
+            bezier // Smooth line
+            style={{
+              marginVertical: 20,
+              borderRadius: 16,
+            }}
+          />
+        </View>
+      </ScrollView>
 
       {/* Add padding between graph and Load More button */}
       <View style={styles.buttonContainer}>
@@ -160,7 +163,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0A0E27', padding: 20 },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
   headerText: { color: 'white', fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
-  chartContainer: { height: 300, padding: 10 },
+  chartContainer: { height: 'auto', padding: 10 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { color: '#FFF', fontSize: 18, marginTop: 10 },
   buttonContainer: { paddingTop: 40, alignItems: 'center' },

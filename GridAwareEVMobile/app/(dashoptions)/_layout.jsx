@@ -5,7 +5,7 @@ export default function DashOptionsLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="graphsec" />
       <Stack.Screen name="frequencygraph" />
-      <Stack.Screen name="timedisplay" />
+      <Stack.Screen name="voltage" />
       <Stack.Screen name="gridstatus" />
     </Stack>
   );

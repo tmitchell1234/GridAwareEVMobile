@@ -101,7 +101,7 @@ const Dashboard = () => {
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.sectionButton} 
-          onPress={() => router.push('(dashoptions)/timedisplay')}
+          onPress={() => router.push('(dashoptions)/voltage')}
           activeOpacity={0.8}
         >
           <Text style={styles.buttonText}>Voltage</Text>
