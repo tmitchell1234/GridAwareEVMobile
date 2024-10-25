@@ -6,7 +6,7 @@ export default function DashOptionsLayout() {
       <Stack.Screen name="current" />
       <Stack.Screen name="frequencygraph" />
       <Stack.Screen name="voltage" />
-      <Stack.Screen name="gridstatus" />
+      <Stack.Screen name="ischarging" />
     </Stack>
   );
 }
