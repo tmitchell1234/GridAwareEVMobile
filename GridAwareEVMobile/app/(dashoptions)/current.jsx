@@ -7,14 +7,14 @@ import { BarChart } from 'react-native-chart-kit';
 
 const API_KEY = Constants.expoConfig.extra.API_KEY;
 
-const VoltageGraph = () => {
+const CurrentGraph = () => {
   const [allData, setAllData] = useState([]); // Store all data from the API
-  const [chartData, setChartData] = useState([]); // Voltage data to display
+  const [chartData, setChartData] = useState([]); // Current data to display
   const [labels, setLabels] = useState([]); // Time for X-axis
   const [isLoading, setIsLoading] = useState(true); // Track loading state
 
-  // Fetch the voltage data from the API
-  const fetchVoltageData = async () => {
+  // Fetch the current data from the API
+  const fetchCurrentData = async () => {
     setIsLoading(true);
     try {
       const deviceMac = await AsyncStorage.getItem('selectedDeviceMac');
@@ -43,17 +43,17 @@ const VoltageGraph = () => {
       setAllData(response.data);
       processGraphData(response.data.slice(-10)); // Show the last 10 points initially
     } catch (error) {
-      console.error('Error fetching voltage data:', error);
+      console.error('Error fetching current data:', error);
     }
     setIsLoading(false);
   };
 
   // Process data and prepare for rendering on the graph
   const processGraphData = (data) => {
-    const voltages = data.map(entry => entry.voltage.toFixed(2));
+    const currents = data.map(entry => entry.current.toFixed(2));
     const timeLabels = data.map((_, index) => (index + 1).toString()); // X-axis data
 
-    setChartData(voltages.map(Number)); // Y-axis data (voltages)
+    setChartData(currents.map(Number)); // Y-axis data (current data)
     setLabels(timeLabels); // X-axis data (time)
   };
 
@@ -69,22 +69,22 @@ const VoltageGraph = () => {
 
   // Fetch initial data after component mounts
   useEffect(() => {
-    fetchVoltageData();
+    fetchCurrentData();
   }, []);
 
   // Chart configuration with updated colors for better engagement
   const chartConfig = {
     backgroundColor: "#0A0E27",
-    backgroundGradientFrom: "#1E2923",
-    backgroundGradientTo: "#08130D",
+    backgroundGradientFrom: "#2F4F4F",
+    backgroundGradientTo: "#1E1E1E",
     decimalPlaces: 2, // Display decimal values
-    color: (opacity = 1) => `rgba(0, 255, 127, ${opacity})`, // Bright green for the bars
+    color: (opacity = 1) => `rgba(255, 99, 71, ${opacity})`, // Tomato color for the bars
     labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`, // White labels for readability
     style: {
       borderRadius: 16,
     },
     barPercentage: 0.5, // Adjust bar width
-    fillShadowGradient: "#00FF7F", // Gradient for the bars (bright green)
+    fillShadowGradient: "#FF6347", // Gradient for the bars (tomato color)
     fillShadowGradientOpacity: 1, // Full opacity for better visibility
     propsForBackgroundLines: {
       stroke: "#FFFFFF", // White background lines for better contrast
@@ -99,7 +99,7 @@ const VoltageGraph = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#FF6F3C" />
-          <Text style={styles.loadingText}>Fetching Voltage Data...</Text>
+          <Text style={styles.loadingText}>Fetching Current Data...</Text>
         </View>
       </SafeAreaView>
     );
@@ -108,10 +108,10 @@ const VoltageGraph = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerText}>Voltage Graph</Text>
+        <Text style={styles.headerText}>Current Graph</Text>
       </View>
 
-      {/* Scrollable View for Bar Chart */}
+      {/* Scrollable View for Horizontal Bar Chart */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View style={styles.chartContainer}>
           <BarChart
@@ -119,19 +119,20 @@ const VoltageGraph = () => {
               labels: labels, // X-axis (time)
               datasets: [
                 {
-                  data: chartData, // Y-axis (voltage data)
+                  data: chartData, // Y-axis (current data)
                 },
               ],
             }}
             width={screenWidth * 2} // Allow horizontal scrolling for larger datasets
             height={graphHeight} // Dynamic height
             chartConfig={chartConfig}
-            verticalLabelRotation={30}
+            verticalLabelRotation={0}
             fromZero
             style={{
               marginVertical: 20,
               borderRadius: 16,
             }}
+            horizontal // Render as a horizontal bar chart
           />
         </View>
       </ScrollView>
@@ -170,4 +171,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default VoltageGraph;
+export default CurrentGraph;

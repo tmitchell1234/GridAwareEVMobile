@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, TouchableOpacity, StyleSheet, Image, FlatList, Alert, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, FlatList, Alert, ScrollView, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios'; 
@@ -10,13 +10,10 @@ const API_KEY = Constants.expoConfig.extra.API_KEY;
 
 const Profile = () => {
   const router = useRouter();
-  const [userData, setUserData] = useState({
-    firstName: '',
-    lastName: '',
-    email: ''
-  });
   const [devices, setDevices] = useState([]); 
-  const [selectedDevice, setSelectedDevice] = useState(null); 
+  const [selectedDevice, setSelectedDevice] = useState(null);
+  const [firstNameInput, setFirstNameInput] = useState(''); // State for first name input
+  const [lastNameInput, setLastNameInput] = useState('');  // State for last name input
 
   // Fetch user JWT token from AsyncStorage
   const fetchUserJwt = async () => {
@@ -35,32 +32,111 @@ const Profile = () => {
   // Function to call the get_devices_for_user API
   const fetchDevices = async () => {
     try {
-      const user_jwt = await AsyncStorage.getItem('userJwt'); 
-  
-      if (!user_jwt) {
-        throw new Error('JWT token not found. Please log in again.');
-      }
+      const user_jwt = await fetchUserJwt();
+
+      if (!user_jwt) throw new Error('JWT token not found.');
 
       const response = await axios.post('https://gridawarecharging.com/api/get_devices_for_user', {
         api_key: API_KEY,
         user_jwt: user_jwt
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
       });
 
-      const devices = response.data;
-      setDevices(devices);  
+      setDevices(response.data);  
     } catch (error) {
-      if (error.response) {
-        Alert.alert('Error', `Failed to fetch devices: ${error.response.data || 'Unknown server error'}`);
-      } else if (error.request) {
-        Alert.alert('Error', 'No response from server. Please check your connection.');
-      } else {
-        Alert.alert('Error', error.message);
-      }
+      handleError(error, 'Failed to fetch devices');
     }
+  };
+
+  // Helper for error handling
+  const handleError = (error, message) => {
+    if (error.response) {
+      Alert.alert('Error', `${message}: ${error.response.data || 'Unknown server error'}`);
+    } else if (error.request) {
+      Alert.alert('Error', 'No response from server. Please check your connection.');
+    } else {
+      Alert.alert('Error', error.message);
+    }
+  };
+
+  // Function to update user's first name
+  const updateFirstName = async () => {
+    try {
+      const user_jwt = await fetchUserJwt();
+      const response = await axios.post('https://gridawarecharging.com/api/update_user_first_name', {
+        api_key: API_KEY,
+        user_jwt: user_jwt,
+        new_name: firstNameInput
+      });
+
+      // Update JWT after name change
+      await AsyncStorage.setItem('userJwt', response.data.token);
+      Alert.alert('Success', 'First name updated successfully');
+    } catch (error) {
+      handleError(error, 'Failed to update first name');
+    }
+  };
+
+  // Function to update user's last name
+  const updateLastName = async () => {
+    try {
+      const user_jwt = await fetchUserJwt();
+      const response = await axios.post('https://gridawarecharging.com/api/update_user_last_name', {
+        api_key: API_KEY,
+        user_jwt: user_jwt,
+        new_name: lastNameInput
+      });
+
+      // Update JWT after name change
+      await AsyncStorage.setItem('userJwt', response.data.token);
+      Alert.alert('Success', 'Last name updated successfully');
+    } catch (error) {
+      handleError(error, 'Failed to update last name');
+    }
+  };
+
+  // Function to unregister a device
+  const unregisterDevice = async () => {
+    try {
+      const user_jwt = await fetchUserJwt();
+      const deviceMac = await AsyncStorage.getItem('selectedDeviceMac');
+
+      const response = await axios.post('https://gridawarecharging.com/api/unregister_device_by_user', {
+        api_key: API_KEY,
+        user_jwt: user_jwt,
+        device_mac_address: deviceMac,
+      });
+
+      Alert.alert('Success', 'Device unregistered successfully');
+    } catch (error) {
+      handleError(error, 'Failed to unregister device');
+    }
+  };
+
+  // Function to delete user account
+  const deleteUserAccount = async () => {
+    Alert.alert(
+      "Delete Account",
+      "Are you sure you want to delete your account? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", onPress: async () => {
+            try {
+              const user_jwt = await fetchUserJwt();
+              const response = await axios.post('https://gridawarecharging.com/api/delete_user_account', {
+                api_key: API_KEY,
+                user_jwt: user_jwt
+              });
+              
+              Alert.alert('Success', 'Account deleted successfully');
+              AsyncStorage.clear();
+              router.replace('/');
+            } catch (error) {
+              handleError(error, 'Failed to delete account');
+            }
+        }},
+      ],
+      { cancelable: true }
+    );
   };
 
   // Function to handle the selection of a device
@@ -74,6 +150,7 @@ const Profile = () => {
     }
   };
 
+  // Function to handle logout
   const handleLogout = () => {
     Alert.alert(
       "Logout",
@@ -98,7 +175,6 @@ const Profile = () => {
   return (
     <SafeAreaView style={styles.safeAreaContainer}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* Profile Header */}
         <View style={styles.header}>
           <Image source={require('../images/GridAwareLogo.png')} style={styles.profileImage} />
         </View>
@@ -106,14 +182,29 @@ const Profile = () => {
         {/* Profile Options */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Update Profile</Text>
-          <TouchableOpacity style={styles.optionButton} onPress={() => router.push('/update-first-name')}>
+
+          {/* First Name Input */}
+          <TextInput
+            style={styles.input}
+            placeholder="Enter New First Name"
+            placeholderTextColor="#999"
+            value={firstNameInput}
+            onChangeText={setFirstNameInput}
+          />
+          <TouchableOpacity style={styles.optionButton} onPress={updateFirstName}>
             <Text style={styles.optionText}>Update First Name</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.optionButton} onPress={() => router.push('/update-last-name')}>
+
+          {/* Last Name Input */}
+          <TextInput
+            style={styles.input}
+            placeholder="Enter New Last Name"
+            placeholderTextColor="#999"
+            value={lastNameInput}
+            onChangeText={setLastNameInput}
+          />
+          <TouchableOpacity style={styles.optionButton} onPress={updateLastName}>
             <Text style={styles.optionText}>Update Last Name</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.optionButton} onPress={() => router.push('/update-email')}>
-            <Text style={styles.optionText}>Update Email</Text>
           </TouchableOpacity>
         </View>
 
@@ -148,7 +239,19 @@ const Profile = () => {
           </View>
         )}
 
-        {/* Logout Button - ensure it is visible */}
+        {/* Unregister Device */}
+        {selectedDevice && (
+          <TouchableOpacity style={styles.optionButton} onPress={unregisterDevice}>
+            <Text style={styles.optionText}>Unregister Selected Device</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Delete Account */}
+        <TouchableOpacity style={styles.optionButton} onPress={deleteUserAccount}>
+          <Text style={styles.optionText}>Delete Account</Text>
+        </TouchableOpacity>
+
+        {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Log Out</Text>
         </TouchableOpacity>
@@ -183,6 +286,14 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     textAlign: 'center',
   },
+  input: {
+    backgroundColor: '#1A1E3A',
+    color: '#FFFFFF',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 10,
+    fontSize: 16,
+  },
   optionButton: {
     backgroundColor: '#1A1E3A',
     padding: 15,
@@ -195,20 +306,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   flatListContent: {
-    paddingBottom: 20, 
-  },
-  logoutButton: {
-    backgroundColor: '#FF6F3C',
-    padding: 15,
-    borderRadius: 25,
-    alignItems: 'center',
-    marginTop: 20,
-    alignSelf: 'stretch', 
-  },
-  logoutButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
+    paddingBottom: 20,
   },
   deviceItem: {
     backgroundColor: '#1A1E3A',
@@ -236,6 +334,19 @@ const styles = StyleSheet.create({
   selectedDeviceText: {
     color: '#FFFFFF',
     fontSize: 18,
+  },
+  logoutButton: {
+    backgroundColor: '#FF6F3C',
+    padding: 15,
+    borderRadius: 25,
+    alignItems: 'center',
+    marginTop: 20,
+    alignSelf: 'stretch',
+  },
+  logoutButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '600',
   },
 });
 
