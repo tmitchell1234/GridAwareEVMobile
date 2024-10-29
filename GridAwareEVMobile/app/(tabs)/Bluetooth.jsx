@@ -190,22 +190,6 @@ const Bluetooth = () => {
     }
   };
 
-  // Disconnect from the Bluetooth device
-  const disconnectFromDevice = async () => {
-    try {
-      if (connectedDevice) {
-        await manager.cancelDeviceConnection(connectedDevice.id);
-        setConnectedDevice(null);
-        Alert.alert('Success', 'Disconnected from device.');
-      } else {
-        Alert.alert('No device to disconnect');
-      }
-    } catch (error) {
-      console.error('Disconnection error:', error);
-      Alert.alert('Error', 'Failed to disconnect from device.');
-    }
-  };
-
   // Clean up the manager on unmount to avoid memory leaks
   useEffect(() => {
     return () => {
@@ -286,10 +270,6 @@ const Bluetooth = () => {
               <Text style={styles.buttonText}>{sendingCredentials ? 'Sending...' : 'Send Wi-Fi Credentials'}</Text>
             </TouchableOpacity>
 
-            {/* Disconnect from Device Button */}
-            <TouchableOpacity style={styles.actionButton} onPress={disconnectFromDevice}>
-              <Text style={styles.buttonText}>Disconnect from Device</Text>
-            </TouchableOpacity>
           </>
         )}
       </ScrollView>

@@ -1,38 +1,69 @@
 import React, { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, Dimensions, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import axios from 'axios';
+import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LineChart } from 'react-native-chart-kit';
-import { Dimensions } from 'react-native';
+
+const API_KEY = Constants.expoConfig.extra.API_KEY;
 
 const Dashboard = () => {
   const router = useRouter();
+  const [isRegistered, setIsRegistered] = useState(false);
 
-  // State for chart data
+  // Check if user has a registered device via the API
+  const checkDeviceRegistration = async () => {
+    try {
+      const userJwt = await AsyncStorage.getItem('userJwt');
+      if (!userJwt) {
+        Alert.alert('Error', 'User JWT not found. Please log in again.');
+        return;
+      }
+
+      const response = await axios.post('https://gridawarecharging.com/api/get_devices_for_user', {
+        api_key: API_KEY,
+        user_jwt: userJwt
+      });
+
+      // Check if any devices are registered
+      if (response.data && response.data.length > 0) {
+        setIsRegistered(true);
+      } else {
+        setIsRegistered(false);
+      }
+    } catch (error) {
+      console.error('Error checking device registration:', error);
+      Alert.alert('Error', 'Unable to check device registration. Please try again later.');
+    }
+  };
+
+  useEffect(() => {
+    checkDeviceRegistration();
+  }, []);
+
   const [chartData, setChartData] = useState({
-    labels: Array.from({ length: 10 }, (_, i) => i.toString()), // Just numbering the X-axis
+    labels: Array.from({ length: 10 }, (_, i) => i.toString()),
     datasets: [
       {
-        data: Array(10).fill(60), // Initial data of 60 Hz for 10 points
+        data: Array(10).fill(60),
         strokeWidth: 2,
       },
     ],
   });
 
-  // Function to simulate frequency adjustment back to 60 Hz
   const simulateFrequency = () => {
     setChartData((prevState) => {
       const lastDataPoint = prevState.datasets[0].data[prevState.datasets[0].data.length - 1];
-      const newDataPoint = lastDataPoint + (Math.random() * 2 - 1); // Simulate slight fluctuation
-
-      // Bring it back towards 60 Hz slowly
+      const newDataPoint = lastDataPoint + (Math.random() * 2 - 1);
       const adjustedDataPoint = newDataPoint > 60 ? newDataPoint - 0.5 : newDataPoint + 0.5;
 
       return {
         ...prevState,
         datasets: [
           {
-            data: [...prevState.datasets[0].data.slice(1), adjustedDataPoint], // Shift the data and add new point
+            data: [...prevState.datasets[0].data.slice(1), adjustedDataPoint],
             strokeWidth: 2,
           },
         ],
@@ -40,10 +71,9 @@ const Dashboard = () => {
     });
   };
 
-  // Use an interval to update the graph every second
   useEffect(() => {
-    const interval = setInterval(simulateFrequency, 1000); // Update every second
-    return () => clearInterval(interval); // Cleanup on unmount
+    const interval = setInterval(simulateFrequency, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -53,69 +83,84 @@ const Dashboard = () => {
         <Text style={styles.headerText}>Dashboard</Text>
       </View>
 
-      {/* Line Chart displaying dynamic data */}
-      <LineChart
-        data={chartData}
-        width={Dimensions.get('window').width - 40} 
-        height={220}
-        yAxisLabel=""
-        yAxisSuffix=" Hz"
-        chartConfig={{
-          backgroundColor: "#022173",
-          backgroundGradientFrom: "#1c3faa",
-          backgroundGradientTo: "#226bdf",
-          decimalPlaces: 2,
-          color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-          labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-          style: {
-            borderRadius: 16,
-          },
-          propsForDots: {
-            r: "6",
-            strokeWidth: "2",
-            stroke: "#ffa726",
-          },
-        }}
-        bezier
-        style={{
-          marginVertical: 20,
-          borderRadius: 16,
-        }}
-      />
+      {isRegistered ? (
+        <>
+          <LineChart
+            data={chartData}
+            width={Dimensions.get('window').width - 40}
+            height={220}
+            yAxisSuffix=" Hz"
+            chartConfig={{
+              backgroundColor: "#022173",
+              backgroundGradientFrom: "#1c3faa",
+              backgroundGradientTo: "#226bdf",
+              decimalPlaces: 2,
+              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              style: {
+                borderRadius: 16,
+              },
+              propsForDots: {
+                r: "6",
+                strokeWidth: "2",
+                stroke: "#ffa726",
+              },
+            }}
+            bezier
+            style={{
+              marginVertical: 20,
+              borderRadius: 16,
+            }}
+          />
 
-      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
-        <TouchableOpacity 
-          style={styles.sectionButton} 
-          onPress={() => router.push('(dashoptions)/frequencygraph')}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.buttonText}>Frequency</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.sectionButton} 
-          onPress={() => router.push('(dashoptions)/current')}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.buttonText}>Current</Text>
-        </TouchableOpacity>
+          <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
+            <TouchableOpacity 
+              style={styles.sectionButton} 
+              onPress={() => router.push('(dashoptions)/frequencygraph')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.buttonText}>Frequency</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.sectionButton} 
+              onPress={() => router.push('(dashoptions)/current')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.buttonText}>Current</Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={styles.sectionButton} 
-          onPress={() => router.push('(dashoptions)/voltage')}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.buttonText}>Voltage</Text>
-        </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.sectionButton} 
+              onPress={() => router.push('(dashoptions)/voltage')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.buttonText}>Voltage</Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={styles.sectionButton} 
-          onPress={() => router.push('(dashoptions)/ischarging')}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.buttonText}>Charge Status</Text>
-        </TouchableOpacity>
-      </ScrollView>
+            <TouchableOpacity 
+              style={styles.sectionButton} 
+              onPress={() => router.push('(dashoptions)/ischarging')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.buttonText}>Charge Status</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </>
+      ) : (
+        <View style={styles.promptContainer}>
+          <Text style={styles.promptText}>Welcome to GridAware!</Text>
+          <Text style={styles.promptDescription}>
+            It looks like you haven't connected a device yet. Go to the Bluetooth tab to connect your ESP32 device.
+          </Text>
+          <TouchableOpacity
+            style={styles.connectButton}
+            onPress={() => router.push('/Bluetooth')}
+          >
+            <Text style={styles.connectButtonText}>Go to Bluetooth</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -159,6 +204,36 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white',
     fontSize: 18,
+  },
+  promptContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  promptText: {
+    color: '#FFF',
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  promptDescription: {
+    color: '#BBB',
+    fontSize: 16,
+    textAlign: 'center',
+    paddingHorizontal: 30,
+    marginBottom: 20,
+  },
+  connectButton: {
+    backgroundColor: '#1A1E3A',
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+  },
+  connectButtonText: {
+    color: '#FF6F3C',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

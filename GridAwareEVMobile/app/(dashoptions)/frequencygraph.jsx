@@ -1,26 +1,26 @@
 import React, { useState, useEffect, useRef } from "react";
-import { SafeAreaView, View, Text, StyleSheet, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { SafeAreaView, View, Text, StyleSheet, ActivityIndicator, Alert, ScrollView, Dimensions } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
+import { LineChart } from 'react-native-chart-kit';
 
 const API_KEY = Constants.expoConfig.extra.API_KEY;
 
 const FrequencyGraph = () => {
-  const [latestFrequency, setLatestFrequency] = useState(null); // Latest frequency reading
-  const [isLoading, setIsLoading] = useState(true); // Track loading state
-  const intervalRef = useRef(null); // Store the interval for cleanup
+  const [latestFrequency, setLatestFrequency] = useState(null);
+  const [chartData, setChartData] = useState([60]);
+  const [labels, setLabels] = useState(["0"]);
+  const [isLoading, setIsLoading] = useState(true);
+  const intervalRef = useRef(null);
 
-  // Helper function to sanitize and validate the frequency data
   const sanitizeFrequency = (frequency) => {
     const parsedFrequency = parseFloat(frequency);
-    // Ensure frequency is a valid number between 0 and 100
     return (!Number.isFinite(parsedFrequency) || isNaN(parsedFrequency) || parsedFrequency < 0 || parsedFrequency > 100)
-      ? 60 // Default to 60Hz if invalid
+      ? 60
       : parsedFrequency;
   };
 
-  // Fetch frequency data from the API
   const fetchFrequencyData = async () => {
     try {
       const deviceMac = await AsyncStorage.getItem('selectedDeviceMac');
@@ -36,7 +36,7 @@ const FrequencyGraph = () => {
         api_key: API_KEY,
         user_jwt: userJwt,
         device_mac_address: deviceMac,
-        time_seconds: 1, // Fetch smaller intervals for faster updates
+        time_seconds: 1,
       });
 
       if (!Array.isArray(response.data)) {
@@ -44,34 +44,52 @@ const FrequencyGraph = () => {
         return;
       }
 
-      const latestData = response.data[response.data.length - 1]; // Get the most recent data point
+      const latestData = response.data[response.data.length - 1];
       const sanitizedFrequency = sanitizeFrequency(latestData.frequency);
       console.log("Latest Frequency:", sanitizedFrequency);
-      setLatestFrequency(sanitizedFrequency);  // Set the latest frequency
-      setIsLoading(false);  // Stop showing the loading spinner after the first data fetch
+
+      setLatestFrequency(sanitizedFrequency);
+      updateChartData(sanitizedFrequency);
+
+      setIsLoading(false);
     } catch (error) {
       console.error('Error fetching frequency data:', error);
     }
   };
 
-  // Start polling data every 1 second to simulate real-time updates
-  useEffect(() => {
-    fetchFrequencyData(); // Initial fetch
+  const updateChartData = (newFrequency) => {
+    setChartData((prevData) => {
+      const updatedData = [...prevData, newFrequency];
+      if (updatedData.length > 20) {
+        updatedData.shift();
+      }
+      return updatedData;
+    });
 
-    // Set up polling every 1 second to fetch new data
+    setLabels((prevLabels) => {
+      const nextTime = (parseInt(prevLabels[prevLabels.length - 1], 10) + 1).toString();
+      const updatedLabels = [...prevLabels, nextTime];
+      if (updatedLabels.length > 20) {
+        updatedLabels.shift();
+      }
+      return updatedLabels;
+    });
+  };
+
+  useEffect(() => {
+    fetchFrequencyData();
+
     intervalRef.current = setInterval(() => {
       fetchFrequencyData();
     }, 1000);
 
     return () => {
-      // Cleanup interval on component unmount
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
     };
   }, []);
 
-  // If data is loading, show an Activity Indicator
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -89,25 +107,68 @@ const FrequencyGraph = () => {
         <Text style={styles.headerText}>Live Frequency Data</Text>
       </View>
 
-      {/* Display the latest frequency */}
       <View style={styles.frequencyContainer}>
         <Text style={styles.frequencyText}>
           Latest Frequency: {latestFrequency ? `${latestFrequency} Hz` : 'No data'}
         </Text>
       </View>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <View style={styles.chartContainer}>
+          <LineChart
+            data={{
+              labels: labels,
+              datasets: [
+                {
+                  data: chartData,
+                },
+              ],
+            }}
+            width={Dimensions.get("window").width * 1.5}
+            height={Dimensions.get("window").height * 0.45}
+            yAxisSuffix=" Hz"
+            yAxisInterval={1}
+            chartConfig={{
+              backgroundColor: "#022173",
+              backgroundGradientFrom: "#1c3faa",
+              backgroundGradientTo: "#226bdf",
+              decimalPlaces: 2,
+              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              style: {
+                borderRadius: 16,
+              },
+              propsForDots: {
+                r: "6",
+                strokeWidth: "2",
+                stroke: "#ffa726",
+              },
+            }}
+            bezier
+            yAxisMin={58}
+            yAxisMax={62}
+            withDots={true}
+            withInnerLines={true}
+            style={{
+              marginVertical: 20,
+              borderRadius: 16,
+            }}
+          />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
 
-// Styles for the component
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0A0E27', padding: 20 },
   header: { alignItems: 'center', marginBottom: 20 },
   headerText: { color: 'white', fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { color: '#FFF', fontSize: 18, marginTop: 10 },
-  frequencyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  frequencyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
   frequencyText: { color: '#FFFFFF', fontSize: 28, fontWeight: 'bold' },
+  chartContainer: { height: 'auto', padding: 10 },
 });
 
 export default FrequencyGraph;

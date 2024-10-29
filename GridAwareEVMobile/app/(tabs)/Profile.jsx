@@ -100,14 +100,19 @@ const Profile = () => {
       const user_jwt = await fetchUserJwt();
       const deviceMac = await AsyncStorage.getItem('selectedDeviceMac');
 
+      console.log('Unregistering device with MAC:', deviceMac);
+      console.log('Using user_jwt:', user_jwt);
+
       const response = await axios.post('https://gridawarecharging.com/api/unregister_device_by_user', {
         api_key: API_KEY,
         user_jwt: user_jwt,
-        device_mac_address: deviceMac,
+        device_mac_address: deviceMac
       });
 
+      console.log('Unregister response:', response.data);
       Alert.alert('Success', 'Device unregistered successfully');
     } catch (error) {
+      console.error('Error during device unregistration:', error);
       handleError(error, 'Failed to unregister device');
     }
   };

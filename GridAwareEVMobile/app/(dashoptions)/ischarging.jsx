@@ -8,8 +8,8 @@ import { PieChart } from 'react-native-chart-kit';
 const API_KEY = Constants.expoConfig.extra.API_KEY;
 
 const ChargingGraph = () => {
-  const [isChargingData, setIsChargingData] = useState({ trueCount: 0, falseCount: 0 }); // Data for pie chart
-  const [isLoading, setIsLoading] = useState(true); // Track loading state
+  const [isChargingData, setIsChargingData] = useState({ trueCount: 0, falseCount: 0 }); 
+  const [isLoading, setIsLoading] = useState(true); 
 
   // Fetch the charging data from the API
   const fetchChargingData = async () => {
@@ -28,7 +28,7 @@ const ChargingGraph = () => {
         api_key: API_KEY,
         user_jwt: userJwt,
         device_mac_address: deviceMac,
-        time_seconds: 60, // Fetch last 60 seconds
+        time_seconds: 60, 
       });
 
       if (!Array.isArray(response.data)) {
@@ -67,16 +67,21 @@ const ChargingGraph = () => {
     fetchChargingData();
   }, []);
 
+  // Calculate percentages for charging and not charging
+  const totalCount = isChargingData.trueCount + isChargingData.falseCount;
+  const chargingPercentage = ((isChargingData.trueCount / totalCount) * 100).toFixed(1);
+  const notChargingPercentage = ((isChargingData.falseCount / totalCount) * 100).toFixed(1);
+
   const chartData = [
     {
-      name: "Charging",
+      name: `Charging (${chargingPercentage}%)`,
       value: isChargingData.trueCount,
       color: "#00FF7F", // Green for charging
       legendFontColor: "#FFF",
       legendFontSize: 15,
     },
     {
-      name: "Not Charging",
+      name: `Not Charging (${notChargingPercentage}%)`,
       value: isChargingData.falseCount,
       color: "#FF6F3C", // Red-orange for not charging
       legendFontColor: "#FFF",
@@ -106,7 +111,7 @@ const ChargingGraph = () => {
       <PieChart
         data={chartData}
         width={screenWidth - 40}
-        height={220}
+        height={280} // Increase the size of the chart
         chartConfig={{
           backgroundColor: "#022173",
           backgroundGradientFrom: "#1c3faa",
@@ -117,7 +122,8 @@ const ChargingGraph = () => {
         accessor="value"
         backgroundColor="transparent"
         paddingLeft="15"
-        absolute // Show percentages inside pie chart
+        absolute // Display percentages inside pie chart
+        hasLegend={true} // Show legend with updated percentages
       />
     </SafeAreaView>
   );
@@ -130,7 +136,6 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   header: {
-    flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
   },
@@ -138,6 +143,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 24,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
   loadingContainer: {
     flex: 1,
