@@ -129,9 +129,9 @@ const FrequencyGraph = () => {
             yAxisSuffix=" Hz"
             yAxisInterval={1}
             chartConfig={{
-              backgroundColor: "#022173",
-              backgroundGradientFrom: "#1c3faa",
-              backgroundGradientTo: "#226bdf",
+              backgroundColor: "#0D47A1",
+              backgroundGradientFrom: "#1976D2",
+              backgroundGradientTo: "#64B5F6",
               decimalPlaces: 2,
               color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
               labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
@@ -139,20 +139,17 @@ const FrequencyGraph = () => {
                 borderRadius: 16,
               },
               propsForDots: {
-                r: "6",
+                r: "5",
                 strokeWidth: "2",
-                stroke: "#ffa726",
+                stroke: "#FF6F3C",
               },
             }}
             bezier
-            yAxisMin={58}
-            yAxisMax={62}
+            yAxisMin={55}
+            yAxisMax={64}
             withDots={true}
             withInnerLines={true}
-            style={{
-              marginVertical: 20,
-              borderRadius: 16,
-            }}
+            style={styles.chartStyle}
           />
         </View>
       </ScrollView>
@@ -163,12 +160,13 @@ const FrequencyGraph = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0A0E27', padding: 20 },
   header: { alignItems: 'center', marginBottom: 20 },
-  headerText: { color: 'white', fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
+  headerText: { color: '#FF6F3C', fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { color: '#FFF', fontSize: 18, marginTop: 10 },
-  frequencyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
+  frequencyContainer: { justifyContent: 'center', alignItems: 'center', marginVertical: 15 },
   frequencyText: { color: '#FFFFFF', fontSize: 28, fontWeight: 'bold' },
-  chartContainer: { height: 'auto', padding: 10 },
+  chartContainer: { paddingHorizontal: 10 },
+  chartStyle: { marginVertical: 20, borderRadius: 16 },
 });
 
 export default FrequencyGraph;

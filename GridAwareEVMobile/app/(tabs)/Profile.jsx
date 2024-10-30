@@ -12,63 +12,65 @@ const Profile = () => {
   const router = useRouter();
   const [devices, setDevices] = useState([]); 
   const [selectedDevice, setSelectedDevice] = useState(null);
-  const [firstNameInput, setFirstNameInput] = useState(''); // State for first name input
-  const [lastNameInput, setLastNameInput] = useState('');  // State for last name input
+  const [firstNameInput, setFirstNameInput] = useState('');
+  const [lastNameInput, setLastNameInput] = useState('');
+  const [userFullName, setUserFullName] = useState('User');
+  const [isLoading, setIsLoading] = useState(true); 
 
-  // Fetch user JWT token from AsyncStorage
+
+  // Fetch user's full name from AsyncStorage
+  const fetchUserFullName = async () => {
+    const firstName = await AsyncStorage.getItem('userFirstName') || 'User';
+    const lastName = await AsyncStorage.getItem('userLastName') || '';
+    setUserFullName(`${firstName} ${lastName}`);
+  };
+
+   // Fetch devices and user name on component mount
+   useEffect(() => {
+    fetchUserFullName();
+    fetchDevices();
+  }, []);
+
+  // Fetch user JWT token
   const fetchUserJwt = async () => {
     try {
       const token = await AsyncStorage.getItem('userJwt');
-      if (token) {
-        return token;
-      } else {
-        Alert.alert('Error', 'You need to log in first.');
-      }
+      if (token) return token;
+      Alert.alert('Error', 'You need to log in first.');
     } catch (error) {
       console.error('Failed to fetch JWT:', error);
     }
   };
 
-  // Function to call the get_devices_for_user API
+  // Function to fetch devices for the user
   const fetchDevices = async () => {
     try {
       const user_jwt = await fetchUserJwt();
-
-      if (!user_jwt) throw new Error('JWT token not found.');
-
       const response = await axios.post('https://gridawarecharging.com/api/get_devices_for_user', {
         api_key: API_KEY,
-        user_jwt: user_jwt
+        user_jwt,
       });
-
-      setDevices(response.data);  
+      setDevices(response.data);
     } catch (error) {
       handleError(error, 'Failed to fetch devices');
     }
   };
 
-  // Helper for error handling
+  // Function to handle errors
   const handleError = (error, message) => {
-    if (error.response) {
-      Alert.alert('Error', `${message}: ${error.response.data || 'Unknown server error'}`);
-    } else if (error.request) {
-      Alert.alert('Error', 'No response from server. Please check your connection.');
-    } else {
-      Alert.alert('Error', error.message);
-    }
+    const errorMessage = error.response?.data || 'An error occurred';
+    Alert.alert('Error', `${message}: ${errorMessage}`);
   };
 
-  // Function to update user's first name
+  // Function to update first name
   const updateFirstName = async () => {
     try {
       const user_jwt = await fetchUserJwt();
       const response = await axios.post('https://gridawarecharging.com/api/update_user_first_name', {
         api_key: API_KEY,
-        user_jwt: user_jwt,
+        user_jwt,
         new_name: firstNameInput
       });
-
-      // Update JWT after name change
       await AsyncStorage.setItem('userJwt', response.data.token);
       Alert.alert('Success', 'First name updated successfully');
     } catch (error) {
@@ -76,21 +78,30 @@ const Profile = () => {
     }
   };
 
-  // Function to update user's last name
+  // Function to update last name
   const updateLastName = async () => {
     try {
       const user_jwt = await fetchUserJwt();
       const response = await axios.post('https://gridawarecharging.com/api/update_user_last_name', {
         api_key: API_KEY,
-        user_jwt: user_jwt,
+        user_jwt,
         new_name: lastNameInput
       });
-
-      // Update JWT after name change
       await AsyncStorage.setItem('userJwt', response.data.token);
       Alert.alert('Success', 'Last name updated successfully');
     } catch (error) {
       handleError(error, 'Failed to update last name');
+    }
+  };
+
+  // Select a device and store its MAC address
+  const selectDevice = async (device) => {
+    try {
+      await AsyncStorage.setItem('selectedDeviceMac', device.device_mac_address);
+      setSelectedDevice(device.device_mac_address);
+      Alert.alert('Device Selected', `Selected device: ${device.device_mac_address}`);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save device.');
     }
   };
 
@@ -99,20 +110,15 @@ const Profile = () => {
     try {
       const user_jwt = await fetchUserJwt();
       const deviceMac = await AsyncStorage.getItem('selectedDeviceMac');
-
-      console.log('Unregistering device with MAC:', deviceMac);
-      console.log('Using user_jwt:', user_jwt);
-
-      const response = await axios.post('https://gridawarecharging.com/api/unregister_device_by_user', {
+      await axios.post('https://gridawarecharging.com/api/unregister_device_by_user', {
         api_key: API_KEY,
-        user_jwt: user_jwt,
-        device_mac_address: deviceMac
+        user_jwt,
+        device_mac_address: deviceMac,
       });
-
-      console.log('Unregister response:', response.data);
       Alert.alert('Success', 'Device unregistered successfully');
+      setSelectedDevice(null);
+      fetchDevices();
     } catch (error) {
-      console.error('Error during device unregistration:', error);
       handleError(error, 'Failed to unregister device');
     }
   };
@@ -124,47 +130,35 @@ const Profile = () => {
       "Are you sure you want to delete your account? This action cannot be undone.",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Delete", onPress: async () => {
+        {
+          text: "Delete",
+          onPress: async () => {
             try {
               const user_jwt = await fetchUserJwt();
-              const response = await axios.post('https://gridawarecharging.com/api/delete_user_account', {
+              await axios.post('https://gridawarecharging.com/api/delete_user_account', {
                 api_key: API_KEY,
-                user_jwt: user_jwt
+                user_jwt,
               });
-              
               Alert.alert('Success', 'Account deleted successfully');
               AsyncStorage.clear();
               router.replace('/');
             } catch (error) {
               handleError(error, 'Failed to delete account');
             }
-        }},
+          }
+        }
       ],
       { cancelable: true }
     );
   };
 
-  // Function to handle the selection of a device
-  const selectDevice = async (device) => {
-    try {
-      await AsyncStorage.setItem('selectedDeviceMac', device.device_mac_address);
-      setSelectedDevice(device.device_mac_address); 
-      Alert.alert('Device Selected', `Selected device: ${device.device_mac_address}`);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to save device.');
-    }
-  };
-
-  // Function to handle logout
+  // Handle logout
   const handleLogout = () => {
     Alert.alert(
       "Logout",
       "Are you sure you want to log out?",
       [
-        {
-          text: "Cancel",
-          style: "cancel"
-        },
+        { text: "Cancel", style: "cancel" },
         {
           text: "Log Out",
           onPress: () => {
@@ -177,86 +171,71 @@ const Profile = () => {
     );
   };
 
+  useEffect(() => {
+    fetchDevices();
+  }, []);
+
   return (
     <SafeAreaView style={styles.safeAreaContainer}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
           <Image source={require('../images/GridAwareLogo.png')} style={styles.profileImage} />
+          <Text style={styles.userNameText}>{userFullName}</Text>
         </View>
 
-        {/* Profile Options */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Update Profile</Text>
-
-          {/* First Name Input */}
           <TextInput
             style={styles.input}
             placeholder="Enter New First Name"
-            placeholderTextColor="#999"
+            placeholderTextColor="#888"
             value={firstNameInput}
             onChangeText={setFirstNameInput}
           />
-          <TouchableOpacity style={styles.optionButton} onPress={updateFirstName}>
-            <Text style={styles.optionText}>Update First Name</Text>
+          <TouchableOpacity style={styles.saveButton} onPress={updateFirstName}>
+            <Text style={styles.saveButtonText}>Update First Name</Text>
           </TouchableOpacity>
-
-          {/* Last Name Input */}
           <TextInput
             style={styles.input}
             placeholder="Enter New Last Name"
-            placeholderTextColor="#999"
+            placeholderTextColor="#888"
             value={lastNameInput}
             onChangeText={setLastNameInput}
           />
-          <TouchableOpacity style={styles.optionButton} onPress={updateLastName}>
-            <Text style={styles.optionText}>Update Last Name</Text>
+          <TouchableOpacity style={styles.saveButton} onPress={updateLastName}>
+            <Text style={styles.saveButtonText}>Update Last Name</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Button to fetch the list of registered devices */}
         <TouchableOpacity style={styles.optionButton} onPress={fetchDevices}>
           <Text style={styles.optionText}>Get Registered Devices</Text>
         </TouchableOpacity>
 
-        {/* Display the list of devices and allow selection */}
         <FlatList
           data={devices}
           keyExtractor={(item) => item.device_mac_address}
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.deviceItem} onPress={() => selectDevice(item)}>
-              <Text style={styles.deviceText}>
-                Device MAC: {item.device_mac_address}
-              </Text>
+              <Text style={styles.deviceText}>Device MAC: {item.device_mac_address}</Text>
             </TouchableOpacity>
           )}
-          ListEmptyComponent={() => (
-            <View style={styles.emptyListContainer}>
-              <Text style={styles.emptyListText}>No devices found.</Text>
-            </View>
-          )}
+          ListEmptyComponent={() => <Text style={styles.emptyListText}>No devices found.</Text>}
           contentContainerStyle={styles.flatListContent}
         />
 
-        {/* If a device is selected, show a confirmation */}
         {selectedDevice && (
           <View style={styles.selectedDeviceContainer}>
             <Text style={styles.selectedDeviceText}>Selected Device: {selectedDevice}</Text>
+            <TouchableOpacity style={styles.unregisterButton} onPress={unregisterDevice}>
+              <Text style={styles.unregisterButtonText}>Unregister Device</Text>
+            </TouchableOpacity>
           </View>
         )}
 
-        {/* Unregister Device */}
-        {selectedDevice && (
-          <TouchableOpacity style={styles.optionButton} onPress={unregisterDevice}>
-            <Text style={styles.optionText}>Unregister Selected Device</Text>
-          </TouchableOpacity>
-        )}
-
-        {/* Delete Account */}
-        <TouchableOpacity style={styles.optionButton} onPress={deleteUserAccount}>
-          <Text style={styles.optionText}>Delete Account</Text>
+        <TouchableOpacity style={styles.deleteButton} onPress={deleteUserAccount}>
+          <Text style={styles.deleteButtonText}>Delete Account</Text>
         </TouchableOpacity>
 
-        {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Log Out</Text>
         </TouchableOpacity>
@@ -275,14 +254,27 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 25,
   },
   profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    marginBottom: 8,
+    borderColor: '#FF6F3C',
+    borderWidth: 2,
+  },
+  userNameText: {
+    fontSize: 20,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    marginVertical: 8,
+    textAlign: 'center',
   },
   section: {
+    backgroundColor: '#1A1E3A',
+    borderRadius: 15,
+    padding: 20,
     marginBottom: 20,
   },
   sectionTitle: {
@@ -290,14 +282,29 @@ const styles = StyleSheet.create({
     color: '#FF6F3C',
     marginBottom: 15,
     textAlign: 'center',
+    fontWeight: '600',
   },
   input: {
-    backgroundColor: '#1A1E3A',
+    backgroundColor: '#333A4D',
     color: '#FFFFFF',
     padding: 15,
     borderRadius: 10,
-    marginBottom: 10,
+    marginBottom: 12,
     fontSize: 16,
+    borderColor: '#4D9FF9',
+    borderWidth: 1,
+  },
+  saveButton: {
+    backgroundColor: '#FF6F3C',
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   optionButton: {
     backgroundColor: '#1A1E3A',
@@ -314,31 +321,61 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   deviceItem: {
-    backgroundColor: '#1A1E3A',
+    backgroundColor: '#232A45',
     padding: 15,
     borderRadius: 10,
     marginBottom: 10,
     alignItems: 'center',
+    borderColor: '#FF6F3C',
+    borderWidth: 1,
   },
   deviceText: {
     fontSize: 16,
     color: '#FFFFFF',
   },
-  emptyListContainer: {
-    padding: 20,
-    alignItems: 'center',
-  },
   emptyListText: {
-    color: '#FFFFFF',
+    color: '#BBB',
     fontSize: 16,
+    textAlign: 'center',
+    marginVertical: 20,
   },
   selectedDeviceContainer: {
+    backgroundColor: '#1A1E3A',
+    padding: 20,
+    borderRadius: 15,
     marginTop: 20,
     alignItems: 'center',
   },
   selectedDeviceText: {
-    color: '#FFFFFF',
+    color: '#FF6F3C',
     fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 10,
+  },
+  unregisterButton: {
+    backgroundColor: '#FF6F3C',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  unregisterButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  deleteButton: {
+    backgroundColor: '#B22222',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  deleteButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   logoutButton: {
     backgroundColor: '#FF6F3C',
