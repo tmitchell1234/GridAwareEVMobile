@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { SafeAreaView, View, Text, StyleSheet, Dimensions, ActivityIndicator, ScrollView, Alert } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { BarChart } from 'react-native-chart-kit';
+import { useFocusEffect } from '@react-navigation/native'; // Import useFocusEffect
 
 const API_KEY = Constants.expoConfig.extra.API_KEY;
 
@@ -71,20 +72,20 @@ const CurrentGraph = () => {
     });
   };
 
-  // Polling to fetch data every second
-  useEffect(() => {
-    fetchCurrentData();
+  // Use useFocusEffect to manage the interval only when the component is in focus
+  useFocusEffect(
+    React.useCallback(() => {
+      // Start fetching data when component is in focus
+      intervalRef.current = setInterval(fetchCurrentData, 1000);
 
-    intervalRef.current = setInterval(() => {
-      fetchCurrentData();
-    }, 1000);
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, []);
+      // Clear interval when component loses focus
+      return () => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+      };
+    }, []) // Dependency array left empty to re-run only on component mount/unmount
+  );
 
   if (isLoading) {
     return (

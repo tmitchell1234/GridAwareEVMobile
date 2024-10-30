@@ -79,6 +79,7 @@ const VoltageGraph = () => {
       fetchVoltageData();
     }, 1000);
 
+    // Cleanup function to stop fetching data when the component is unmounted
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);

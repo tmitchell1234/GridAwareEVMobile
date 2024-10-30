@@ -4,6 +4,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { LineChart } from 'react-native-chart-kit';
+import { useFocusEffect } from '@react-navigation/native';
 
 const API_KEY = Constants.expoConfig.extra.API_KEY;
 
@@ -76,19 +77,19 @@ const FrequencyGraph = () => {
     });
   };
 
-  useEffect(() => {
-    fetchFrequencyData();
+  useFocusEffect(
+    React.useCallback(() => {
+      // Start fetching data when component is in focus
+      intervalRef.current = setInterval(fetchFrequencyData, 1000);
 
-    intervalRef.current = setInterval(() => {
-      fetchFrequencyData();
-    }, 1000);
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, []);
+      // Clear interval when component loses focus
+      return () => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+      };
+    }, [])
+  );
 
   if (isLoading) {
     return (

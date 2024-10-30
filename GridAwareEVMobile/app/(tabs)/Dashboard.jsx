@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, Dimensions, Alert, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import axios from 'axios';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -15,14 +15,36 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [deviceMac, setDeviceMac] = useState(null); 
   const [chartData, setChartData] = useState({
-    labels: Array.from({ length: 10 }, (_, i) => ""), // Empty labels for x-axis
+    labels: Array.from({ length: 10 }, (_, i) => ""),
     datasets: [
-      { data: Array(10).fill(60), color: () => '#1e90ff' }, // Frequency - blue
-      { data: Array(10).fill(3.5), color: () => '#ffa500' }, // Voltage - orange
-      { data: Array(10).fill(1.5), color: () => '#32cd32' }  // Current - green
+      { data: Array(10).fill(60), color: () => '#1e90ff' },
+      { data: Array(10).fill(3.5), color: () => '#ffa500' },
+      { data: Array(10).fill(1.5), color: () => '#32cd32' }
     ],
   });
 
+  // Function to check if the device still exists using check_exists endpoint
+  const verifyDeviceExists = async () => {
+    try {
+      const deviceMac = await AsyncStorage.getItem('selectedDeviceMac');
+      const userJwt = await AsyncStorage.getItem('userJwt');
+
+      if (!deviceMac || !userJwt) return false;
+
+      const response = await axios.post('https://gridawarecharging.com/api/check_exists', {
+        api_key: API_KEY,
+        device_mac_address: deviceMac,
+      });
+
+      // Check the "exists" field in the response
+      return response.data.exists;
+    } catch (error) {
+      console.error("Error verifying device existence:", error);
+      return false;
+    }
+  };
+
+  // Function to check device registration and set states accordingly
   const checkDeviceRegistration = async () => {
     try {
       const userJwt = await AsyncStorage.getItem('userJwt');
@@ -41,6 +63,7 @@ const Dashboard = () => {
         setDeviceMac(response.data[0].device_mac_address);
       } else {
         setIsRegistered(false);
+        setDeviceMac(null);
       }
     } catch (error) {
       console.error('Error checking device registration:', error);
@@ -50,6 +73,7 @@ const Dashboard = () => {
     }
   };
 
+  // Function to fetch data
   const fetchData = async () => {
     if (!deviceMac) return;
 
@@ -57,6 +81,16 @@ const Dashboard = () => {
       const userJwt = await AsyncStorage.getItem('userJwt');
       if (!userJwt) {
         Alert.alert('Error', 'User token not found. Please log in again.');
+        return;
+      }
+
+      // Check if the device is still registered before fetching data
+      const exists = await verifyDeviceExists();
+      if (!exists) {
+        setIsRegistered(false);
+        setDeviceMac(null);
+        clearInterval(fetchInterval);
+        Alert.alert('Device Unregistered', 'Your device has been unregistered.');
         return;
       }
 
@@ -87,11 +121,18 @@ const Dashboard = () => {
     }));
   };
 
-  useEffect(() => {
-    checkDeviceRegistration();
-    const interval = setInterval(fetchData, 1000);
-    return () => clearInterval(interval);
-  }, [deviceMac]);
+  // Use useFocusEffect to handle periodic data fetch
+  useFocusEffect(
+    React.useCallback(() => {
+      checkDeviceRegistration();
+      const fetchInterval = setInterval(fetchData, 1000);
+
+      // Cleanup interval when leaving the screen
+      return () => {
+        clearInterval(fetchInterval);
+      };
+    }, [deviceMac])
+  );
 
   const screenWidth = Dimensions.get('window').width;
 
