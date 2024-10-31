@@ -1,129 +1,112 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, Animated, Easing, Dimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Dimensions } from 'react-native';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 
-const fakeNotifications = [
-  {
-    id: 1,
-    title: "Grid Power Regulation",
-    date: "[Date],[Time]",
-    content: "The device detected a fluctuation in the power grid frequency. Failure resulted from ... Hardware system regulation was activated.",
-  },
-  
-  {
-    id: 2,
-    title: "Grid Power Regulation",
-    date: "[Date],[Time]",
-    content: "The device detected a fluctuation in the power grid frequency. Failure resulted from ... Hardware system regulation was activated.",
-  },
-  {
-    id: 3,
-    title: "Grid Power Regulation",
-    date: "[Date],[Time]",
-    content: "The device detected a fluctuation in the power grid frequency. Failure resulted from ... Hardware system regulation was activated.",
-  },
-  {
-    id: 4,
-    title: "Grid Power Regulation",
-    date: "[Date],[Time]",
-    content: "The device detected a fluctuation in the power grid frequency. Failure resulted from ... Hardware system regulation was activated.",
-  },
-  {
-    id: 5,
-    title: "Grid Power Regulation",
-    date: "[Date],[Time]",
-    content: "The device detected a fluctuation in the power grid frequency. Failure resulted from ... Hardware system regulation was activated.",
-  },
-  {
-    id: 6,
-    title: "Grid Power Regulation",
-    date: "[Date],[Time]",
-    content: "The device detected a fluctuation in the power grid frequency. Failure resulted from ... Hardware system regulation was activated.",
-  },
-  {
-    id: 7,
-    title: "Grid Power Regulation",
-    date: "[Date],[Time]",
-    content: "The device detected a fluctuation in the power grid frequency. Failure resulted from ... Hardware system regulation was activated.",
-  },
-  {
-    id: 8,
-    title: "Grid Power Regulation",
-    date: "[Date],[Time]",
-    content: "The device detected a fluctuation in the power grid frequency. Failure resulted from ... Hardware system regulation was activated.",
-  },
-  {
-    id: 9,
-    title: "Grid Power Regulation",
-    date: "[Date],[Time]",
-    content: "The device detected a fluctuation in the power grid frequency. Failure resulted from ... Hardware system regulation was activated.",
-  },
-  {
-    id: 10,
-    title: "Grid Power Regulation",
-    date: "[Date],[Time]",
-    content: "The device detected a fluctuation in the power grid frequency. Failure resulted from ... Hardware system regulation was activated.",
-  },
-];
+const API_KEY = Constants.expoConfig.extra.API_KEY;
 
 const Notifications = () => {
-  const [selectedNotification, setSelectedNotification] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [fadeAnim] = useState(new Animated.Value(0));
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [reportData, setReportData] = useState(null);
+  const [dates, setDates] = useState([]);
 
-  const openModal = (notification) => {
-    setSelectedNotification(notification);
-    setModalVisible(true);
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 500,
-      easing: Easing.ease,
-      useNativeDriver: true,
-    }).start();
+  // Generate the last 7 days as selectable dates
+  useEffect(() => {
+    const today = new Date();
+    const last7Days = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      last7Days.push(date.toISOString().split('T')[0]); // Format as "YYYY-MM-DD"
+    }
+    setDates(last7Days);
+  }, []);
+
+  // Fetch report data for a specific date
+  const fetchReportData = async (dateString) => {
+    try {
+      const userJwt = await AsyncStorage.getItem('userJwt');
+      const deviceMac = await AsyncStorage.getItem('selectedDeviceMac');
+
+      if (!userJwt || !deviceMac) {
+        Alert.alert('Error', 'Device MAC not found. Please go to Profile and select a device.');
+        return;
+      }
+
+      const response = await axios.post('https://gridawarecharging.com/api/get_data_report_for_day', {
+        api_key: API_KEY,
+        user_jwt: userJwt,
+        device_mac_address: deviceMac,
+        date_string: dateString,
+      });
+
+      if (response.data.length > 0) {
+        const averageData = calculateAverages(response.data);
+        setReportData({ date: dateString, ...averageData });
+      } else {
+        Alert.alert('No Data', `No data available for ${dateString}.`);
+        setReportData(null);
+      }
+    } catch (error) {
+      console.error('Error fetching report data:', error);
+      Alert.alert('Error', 'Failed to fetch report data. Please try again later.');
+    }
   };
 
-  const closeModal = () => {
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 300,
-      easing: Easing.ease,
-      useNativeDriver: true,
-    }).start(() => {
-      setModalVisible(false);
-      setSelectedNotification(null);
-    });
+  // Calculate averages for frequency, voltage, current, and charging status
+  const calculateAverages = (data) => {
+    const frequencySum = data.reduce((sum, item) => sum + (item.frequency || 0), 0);
+    const voltageSum = data.reduce((sum, item) => sum + (item.voltage || 0), 0);
+    const currentSum = data.reduce((sum, item) => sum + (item.current || 0), 0);
+    const chargingCount = data.filter(item => item.is_charging).length;
+    const haltedCount = data.length - chargingCount; // Count of times it was not charging
+
+    const averages = {
+      averageFrequency: (frequencySum / data.length).toFixed(2),
+      averageVoltage: (voltageSum / data.length).toFixed(2),
+      averageCurrent: (currentSum / data.length).toFixed(2),
+      chargingStatus: `${((chargingCount / data.length) * 100).toFixed(0)}%`,
+      haltedCount, // Number of halted instances
+    };
+
+    return averages;
   };
 
   return (
     <SafeAreaView style={styles.safeAreaContainer}>
       <View style={styles.container}>
-        <Text style={styles.headerText}>Notifications</Text>
-        <ScrollView contentContainerStyle={styles.scrollView}>
-          {fakeNotifications.map((notification) => (
+        <Text style={styles.headerText}>Select a Date to View Report</Text>
+
+        {/* Display dates as selectable options */}
+        <ScrollView contentContainerStyle={styles.scrollView} horizontal>
+          {dates.map((date) => (
             <TouchableOpacity
-              key={notification.id}
-              style={styles.notificationCard}
-              onPress={() => openModal(notification)}
+              key={date}
+              style={[styles.dateButton, selectedDate === date && styles.selectedDateButton]}
+              onPress={() => {
+                setSelectedDate(date);
+                fetchReportData(date);
+              }}
             >
-              <Text style={styles.notificationTitle}>{notification.title}</Text>
-              <Text style={styles.notificationContent}>{notification.date}, {notification.content.slice(0, 50)}...</Text>
+              <Text style={styles.dateText}>{date}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
 
-        {modalVisible && selectedNotification && (
-          <Modal transparent={true} animationType="none" visible={modalVisible}>
-            <Animated.View style={[styles.modalBackground, { opacity: fadeAnim }]}>
-              <View style={styles.modalContainer}>
-                <Text style={styles.modalTitle}>{selectedNotification.title}</Text>
-                <Text style={styles.modalDate}>{selectedNotification.date}</Text>
-                <Text style={styles.modalContent}>{selectedNotification.content}</Text>
-                <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
-                  <Text style={styles.closeButtonText}>Close</Text>
-                </TouchableOpacity>
-              </View>
-            </Animated.View>
-          </Modal>
+        {/* Display report data if available */}
+        {reportData && (
+          <View style={styles.reportContainer}>
+            <Text style={styles.reportTitle}>Report for {reportData.date}</Text>
+            <View style={styles.reportContent}>
+              <Text style={styles.reportItem}>Average Frequency: <Text style={styles.reportValue}>{reportData.averageFrequency} Hz</Text></Text>
+              <Text style={styles.reportItem}>Average Voltage: <Text style={styles.reportValue}>{reportData.averageVoltage} V</Text></Text>
+              <Text style={styles.reportItem}>Average Current: <Text style={styles.reportValue}>{reportData.averageCurrent} A</Text></Text>
+              <Text style={styles.reportItem}>Charging Status: <Text style={styles.reportValue}>{reportData.chargingStatus}</Text> of the time</Text>
+              <Text style={styles.reportItem}>Times Halted: <Text style={styles.reportValue}>{reportData.haltedCount}</Text> times</Text>
+            </View>
+          </View>
         )}
       </View>
     </SafeAreaView>
@@ -142,79 +125,58 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'white',
+    color: '#FF6F3C',
     marginBottom: 20,
     textAlign: 'center',
   },
   scrollView: {
     paddingBottom: 20,
+    flexDirection: 'row',
+    paddingHorizontal: 10,
   },
-  notificationCard: {
+  dateButton: {
+    backgroundColor: '#3C415C',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    marginHorizontal: 5,
+    alignItems: 'center',
+  },
+  selectedDateButton: {
     backgroundColor: '#FF6F3C',
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 5,
   },
-  notificationTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+  dateText: {
+    fontSize: 16,
     color: 'white',
   },
-  notificationContent: {
-    fontSize: 14,
-    color: '#F3F3F3',
-    marginTop: 10,
-  },
-  modalBackground: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContainer: {
-    width: Dimensions.get('window').width - 40,
+  reportContainer: {
     backgroundColor: '#1A1E3A',
-    borderRadius: 15,
+    borderRadius: 10,
     padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 10,
+    marginTop: 20,
   },
-  modalTitle: {
-    fontSize: 22,
+  reportTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#FF6F3C',
-    marginBottom: 10,
-  },
-  modalDate: {
-    fontSize: 14,
-    color: '#B0B0B0',
     marginBottom: 15,
+    textAlign: 'center',
   },
-  modalContent: {
+  reportContent: {
+    borderTopWidth: 1,
+    borderTopColor: '#2C314B',
+    paddingTop: 10,
+  },
+  reportItem: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: '#F3F3F3',
+    marginVertical: 5,
+    flexDirection: 'row',
   },
-  closeButton: {
-    marginTop: 20,
-    backgroundColor: '#FF6F3C',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  closeButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+  reportValue: {
     fontWeight: 'bold',
+    color: '#FF6F3C',
   },
 });
-
 
 export default Notifications;

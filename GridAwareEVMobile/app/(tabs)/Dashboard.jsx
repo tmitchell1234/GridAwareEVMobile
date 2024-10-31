@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -15,20 +15,20 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [deviceMac, setDeviceMac] = useState(null); 
   const [chartData, setChartData] = useState({
-    labels: Array.from({ length: 10 }, (_, i) => ""),
+    labels: Array.from({ length: 10 }, () => ""),
     datasets: [
       { data: Array(10).fill(60), color: () => '#1e90ff' },
       { data: Array(10).fill(3.5), color: () => '#ffa500' },
       { data: Array(10).fill(1.5), color: () => '#32cd32' }
     ],
   });
+  
+  const fetchInterval = useRef(null); // Use a ref to store the interval, so it persists across renders
 
-  // Function to check if the device still exists using check_exists endpoint
+  // Function to verify device existence using the check_exists endpoint
   const verifyDeviceExists = async () => {
     try {
-      const deviceMac = await AsyncStorage.getItem('selectedDeviceMac');
       const userJwt = await AsyncStorage.getItem('userJwt');
-
       if (!deviceMac || !userJwt) return false;
 
       const response = await axios.post('https://gridawarecharging.com/api/check_exists', {
@@ -64,6 +64,7 @@ const Dashboard = () => {
       } else {
         setIsRegistered(false);
         setDeviceMac(null);
+        Alert.alert('No Device Registered', 'Please go to Profile and select a device.');
       }
     } catch (error) {
       console.error('Error checking device registration:', error);
@@ -89,8 +90,8 @@ const Dashboard = () => {
       if (!exists) {
         setIsRegistered(false);
         setDeviceMac(null);
-        clearInterval(fetchInterval);
-        Alert.alert('Device Unregistered', 'Your device has been unregistered.');
+        clearInterval(fetchInterval.current);
+        Alert.alert('Device Unregistered', 'Your device has been unregistered. Please select a registered device.');
         return;
       }
 
@@ -125,11 +126,18 @@ const Dashboard = () => {
   useFocusEffect(
     React.useCallback(() => {
       checkDeviceRegistration();
-      const fetchInterval = setInterval(fetchData, 1000);
+
+      // Only set interval if deviceMac is available
+      if (deviceMac) {
+        fetchInterval.current = setInterval(fetchData, 1000);
+      }
 
       // Cleanup interval when leaving the screen
       return () => {
-        clearInterval(fetchInterval);
+        if (fetchInterval.current) {
+          clearInterval(fetchInterval.current);
+          fetchInterval.current = null;
+        }
       };
     }, [deviceMac])
   );

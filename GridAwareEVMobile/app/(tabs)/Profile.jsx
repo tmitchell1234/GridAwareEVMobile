@@ -113,7 +113,7 @@ const Profile = () => {
       await axios.post('https://gridawarecharging.com/api/unregister_device_by_user', {
         api_key: API_KEY,
         user_jwt,
-        device_mac_address: deviceMac,
+        device_mac_address: deviceMac
       });
       Alert.alert('Success', 'Device unregistered successfully');
       setSelectedDevice(null);
