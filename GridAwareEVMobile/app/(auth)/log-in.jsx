@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
-import { Animated } from 'react-native';
+import { Animated, Easing } from 'react-native';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios'; // Import axios
@@ -20,18 +20,12 @@ const LogIn = () => {
   // Function to animate the logo
   const animateLogo = () => {
     Animated.loop(
-      Animated.sequence([
-        Animated.timing(logoAnimation, {
-          toValue: 1,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(logoAnimation, {
-          toValue: 0,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-      ])
+      Animated.timing(logoAnimation, {
+        toValue: 1,
+        duration: 3500,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: true,
+      })
     ).start();
   };
 
@@ -116,7 +110,7 @@ const LogIn = () => {
     >
       <Animated.View style={[styles.logoContainer, { transform: [{ scale: logoAnimation.interpolate({
         inputRange: [0, 1],
-        outputRange: [1, 1.2]
+        outputRange: [1, 1.1]
       }) }] }]}>
         <Image source={require('../images/GridAwareLogo.png')} style={styles.logo} />
       </Animated.View>
@@ -180,6 +174,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderColor: '#4D9FF9',
     borderWidth: 1,
+    shadowColor: '#4D9FF9',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
   },
   loginButton: {
     backgroundColor: '#4D9FF9',
@@ -187,11 +185,17 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: '100%',
     alignItems: 'center',
+    alignItems: 'center',
+    shadowColor: '#6FA9FF',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   loginButtonText: {
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
+    letterSpacing: 0.5,
   },
   passwordContainer: {
     flexDirection: 'row',

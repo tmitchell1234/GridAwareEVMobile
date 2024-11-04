@@ -6,6 +6,7 @@ import axios from 'axios';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LineChart } from 'react-native-chart-kit';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 const API_KEY = Constants.expoConfig.extra.API_KEY;
 
@@ -184,16 +185,23 @@ const Dashboard = () => {
           </View>
 
           <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
-            <TouchableOpacity style={styles.sectionButton} onPress={() => router.push('(dashoptions)/frequencygraph')}>
+          <TouchableOpacity style={styles.sectionButton} onPress={() => router.push('(dashoptions)/frequencygraph')}>
+              <Ionicons name="pulse" size={24} color="white" style={styles.icon} />
               <Text style={styles.buttonText}>Frequency</Text>
             </TouchableOpacity>
+
             <TouchableOpacity style={styles.sectionButton} onPress={() => router.push('(dashoptions)/current')}>
+              <MaterialCommunityIcons name="current-ac" size={24} color="white" style={styles.icon} />
               <Text style={styles.buttonText}>Current</Text>
             </TouchableOpacity>
+
             <TouchableOpacity style={styles.sectionButton} onPress={() => router.push('(dashoptions)/voltage')}>
+              <Ionicons name="flash" size={24} color="white" style={styles.icon} />
               <Text style={styles.buttonText}>Voltage</Text>
             </TouchableOpacity>
+
             <TouchableOpacity style={styles.sectionButton} onPress={() => router.push('(dashoptions)/ischarging')}>
+              <Ionicons name="battery-charging" size={24} color="white" style={styles.icon} />
               <Text style={styles.buttonText}>Charge Status</Text>
             </TouchableOpacity>
           </ScrollView>
@@ -222,6 +230,7 @@ const styles = StyleSheet.create({
   legendText: { fontSize: 16, fontWeight: 'bold' },
   scrollContainer: { flex: 1, marginTop: 20 },
   sectionButton: { backgroundColor: '#FF6F3C', padding: 20, borderRadius: 10, alignItems: 'center', marginBottom: 10 },
+  icon: { marginRight: 10 },
   buttonText: { color: 'white', fontSize: 18 },
   promptContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   promptText: { color: '#FFF', fontSize: 22, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' },

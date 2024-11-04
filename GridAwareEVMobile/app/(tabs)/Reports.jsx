@@ -7,7 +7,7 @@ import Constants from 'expo-constants';
 
 const API_KEY = Constants.expoConfig.extra.API_KEY;
 
-const Notifications = () => {
+const Reports = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [reportData, setReportData] = useState(null);
   const [dates, setDates] = useState([]);
@@ -179,4 +179,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Notifications;
+export default Reports;

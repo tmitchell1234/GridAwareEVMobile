@@ -22,13 +22,43 @@ const FrequencyGraph = () => {
       : parsedFrequency;
   };
 
+  // Verify if the device still exists
+  const verifyDeviceExists = async () => {
+    try {
+      const deviceMac = await AsyncStorage.getItem('selectedDeviceMac');
+      const userJwt = await AsyncStorage.getItem('userJwt');
+      if (!deviceMac || !userJwt) return false;
+
+      const response = await axios.post('https://gridawarecharging.com/api/check_exists', {
+        api_key: API_KEY,
+        device_mac_address: deviceMac,
+      });
+
+      return response.data.exists;
+    } catch (error) {
+      console.error("Error verifying device existence:", error);
+      return false;
+    }
+  };
+
+  // Fetch frequency data and handle edge cases
   const fetchFrequencyData = async () => {
     try {
       const deviceMac = await AsyncStorage.getItem('selectedDeviceMac');
       const userJwt = await AsyncStorage.getItem('userJwt');
 
       if (!deviceMac || !userJwt) {
-        Alert.alert('Error', 'Device MAC or user token missing.');
+        Alert.alert('Error', 'Device MAC or user token missing. Please go to Profile to select your device.');
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+        return;
+      }
+
+      const exists = await verifyDeviceExists();
+      if (!exists) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+        Alert.alert('Device Unregistered', 'Your device is no longer registered. Please select a registered device from the Profile tab.');
         return;
       }
 
@@ -51,7 +81,6 @@ const FrequencyGraph = () => {
 
       setLatestFrequency(sanitizedFrequency);
       updateChartData(sanitizedFrequency);
-
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching frequency data:', error);
@@ -86,6 +115,7 @@ const FrequencyGraph = () => {
       return () => {
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
+          intervalRef.current = null;
         }
       };
     }, [])
@@ -112,6 +142,10 @@ const FrequencyGraph = () => {
         <Text style={styles.frequencyText}>
           Latest Frequency: {latestFrequency ? `${latestFrequency} Hz` : 'No data'}
         </Text>
+      </View>
+
+      <View style={styles.swipeHintContainer}>
+        <Text style={styles.swipeHintText}>Swipe left or right to view more data</Text>
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -168,6 +202,20 @@ const styles = StyleSheet.create({
   frequencyText: { color: '#FFFFFF', fontSize: 28, fontWeight: 'bold' },
   chartContainer: { paddingHorizontal: 10 },
   chartStyle: { marginVertical: 20, borderRadius: 16 },
+  swipeHintContainer: {
+    alignItems: 'center',
+    marginBottom: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  swipeHintText: {
+    color: '#FF6F3C',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },  
 });
 
 export default FrequencyGraph;

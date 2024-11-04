@@ -10,19 +10,48 @@ const API_KEY = Constants.expoConfig.extra.API_KEY;
 
 const CurrentGraph = () => {
   const [latestCurrent, setLatestCurrent] = useState(null);
-  const [chartData, setChartData] = useState([2.5]); // Initial midpoint for 0-5A range
+  const [chartData, setChartData] = useState([2.5]);
   const [labels, setLabels] = useState(["0"]);
   const [isLoading, setIsLoading] = useState(true);
   const intervalRef = useRef(null);
 
-  // Fetch current data from the API
+  // Verify if the device still exists
+  const verifyDeviceExists = async () => {
+    try {
+      const deviceMac = await AsyncStorage.getItem('selectedDeviceMac');
+      const userJwt = await AsyncStorage.getItem('userJwt');
+      if (!deviceMac || !userJwt) return false;
+
+      const response = await axios.post('https://gridawarecharging.com/api/check_exists', {
+        api_key: API_KEY,
+        device_mac_address: deviceMac,
+      });
+
+      return response.data.exists;
+    } catch (error) {
+      console.error("Error verifying device existence:", error);
+      return false;
+    }
+  };
+
+  // Fetch current data and handle edge cases
   const fetchCurrentData = async () => {
     try {
       const deviceMac = await AsyncStorage.getItem('selectedDeviceMac');
       const userJwt = await AsyncStorage.getItem('userJwt');
 
       if (!deviceMac || !userJwt) {
-        Alert.alert('Error', 'Device MAC or user token missing.');
+        Alert.alert('Error', 'Device MAC or user token missing. Please go to Profile to select your device.');
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+        return;
+      }
+
+      const exists = await verifyDeviceExists();
+      if (!exists) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+        Alert.alert('Device Unregistered', 'Your device is no longer registered. Please select a registered device from the Profile tab.');
         return;
       }
 
@@ -72,7 +101,6 @@ const CurrentGraph = () => {
     });
   };
 
-  // Use useFocusEffect to manage the interval only when the component is in focus
   useFocusEffect(
     React.useCallback(() => {
       // Start fetching data when component is in focus
@@ -82,9 +110,10 @@ const CurrentGraph = () => {
       return () => {
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
+          intervalRef.current = null;
         }
       };
-    }, []) // Dependency array left empty to re-run only on component mount/unmount
+    }, [])
   );
 
   if (isLoading) {
@@ -110,6 +139,11 @@ const CurrentGraph = () => {
           Latest Current: {latestCurrent ? `${latestCurrent} A` : 'No data'}
         </Text>
       </View>
+
+      <View style={styles.swipeHintContainer}>
+        <Text style={styles.swipeHintText}>Swipe left or right to view more data</Text>
+      </View>
+
 
       {/* Bar Chart for real-time updates */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -166,6 +200,20 @@ const styles = StyleSheet.create({
   currentContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
   currentText: { color: '#FFFFFF', fontSize: 28, fontWeight: 'bold' },
   chartContainer: { height: 'auto', padding: 10 },
+  swipeHintContainer: {
+    alignItems: 'center',
+    marginBottom: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  swipeHintText: {
+    color: '#FF6F3C',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
 });
 
 export default CurrentGraph;

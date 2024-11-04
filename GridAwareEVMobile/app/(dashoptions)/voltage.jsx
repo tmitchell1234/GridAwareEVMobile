@@ -4,24 +4,54 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { BarChart } from 'react-native-chart-kit';
+import { useFocusEffect } from '@react-navigation/native';
 
 const API_KEY = Constants.expoConfig.extra.API_KEY;
 
 const VoltageGraph = () => {
   const [latestVoltage, setLatestVoltage] = useState(null);
-  const [chartData, setChartData] = useState([3]); // Initialize around midpoint for the 0-6V range
+  const [chartData, setChartData] = useState([3]); 
   const [labels, setLabels] = useState(["0"]);
   const [isLoading, setIsLoading] = useState(true);
   const intervalRef = useRef(null);
 
-  // Fetch voltage data from the API
+  // Function to verify device existence
+  const verifyDeviceExists = async () => {
+    try {
+      const deviceMac = await AsyncStorage.getItem('selectedDeviceMac');
+      const userJwt = await AsyncStorage.getItem('userJwt');
+      if (!deviceMac || !userJwt) return false;
+
+      const response = await axios.post('https://gridawarecharging.com/api/check_exists', {
+        api_key: API_KEY,
+        device_mac_address: deviceMac,
+      });
+
+      return response.data.exists;
+    } catch (error) {
+      console.error("Error verifying device existence:", error);
+      return false;
+    }
+  };
+
+  // Fetch voltage data from the API with edge case handling
   const fetchVoltageData = async () => {
     try {
       const deviceMac = await AsyncStorage.getItem('selectedDeviceMac');
       const userJwt = await AsyncStorage.getItem('userJwt');
 
       if (!deviceMac || !userJwt) {
-        Alert.alert('Error', 'Device MAC or user token missing.');
+        Alert.alert('Error', 'Device MAC or user token missing. Please go to Profile and select your device.');
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+        return;
+      }
+
+      const exists = await verifyDeviceExists();
+      if (!exists) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+        Alert.alert('Device Unregistered', 'Your device is no longer registered. Please select a registered device from the Profile tab.');
         return;
       }
 
@@ -71,23 +101,20 @@ const VoltageGraph = () => {
     });
   };
 
-  // Polling to fetch data every second
-  useEffect(() => {
-    fetchVoltageData();
+  // Use useFocusEffect to manage the interval only when the component is in focus
+  useFocusEffect(
+    React.useCallback(() => {
+      intervalRef.current = setInterval(fetchVoltageData, 1000);
 
-    intervalRef.current = setInterval(() => {
-      fetchVoltageData();
-    }, 1000);
+      return () => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+      };
+    }, [])
+  );
 
-    // Cleanup function to stop fetching data when the component is unmounted
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, []);
-
-  // Show loading spinner if data is not yet loaded
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -110,6 +137,10 @@ const VoltageGraph = () => {
         <Text style={styles.voltageText}>
           Latest Voltage: {latestVoltage ? `${latestVoltage} V` : 'No data'}
         </Text>
+      </View>
+
+      <View style={styles.swipeHintContainer}>
+        <Text style={styles.swipeHintText}>Swipe left or right to view more data</Text>
       </View>
 
       {/* Bar Chart for real-time updates */}
@@ -167,6 +198,20 @@ const styles = StyleSheet.create({
   voltageContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
   voltageText: { color: '#FFFFFF', fontSize: 28, fontWeight: 'bold' },
   chartContainer: { height: 'auto', padding: 10 },
+  swipeHintContainer: {
+    alignItems: 'center',
+    marginBottom: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  swipeHintText: {
+    color: '#FF6F3C',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
 });
 
 export default VoltageGraph;

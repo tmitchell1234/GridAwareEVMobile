@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons'; // Import MaterialIcons for better reporting icon options
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function BottomTabsLayout() {
@@ -10,18 +10,20 @@ export default function BottomTabsLayout() {
         headerShown: false,
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
+          let IconComponent = Ionicons; // Default to Ionicons
 
           if (route.name === 'Dashboard') {
             iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Notifications') {
-            iconName = focused ? 'notifications' : 'notifications-outline';
+          } else if (route.name === 'Reports') { // Change 'Notifications' to 'Reports'
+            IconComponent = MaterialIcons; // Use MaterialIcons for report-related icons
+            iconName = focused ? 'insert-chart' : 'insert-chart-outlined';
           } else if (route.name === 'Bluetooth') {
             iconName = focused ? 'bluetooth' : 'bluetooth-outline';
           } else if (route.name === 'Profile') {
             iconName = focused ? 'person' : 'person-outline';
           }
 
-          return <Ionicons name={iconName} size={size - 4} color={'white'} />;
+          return <IconComponent name={iconName} size={size - 4} color={'white'} />;
         },
         tabBarActiveTintColor: 'white',
         tabBarInactiveTintColor: 'white',
@@ -57,7 +59,7 @@ export default function BottomTabsLayout() {
       })}
     >
       <Tabs.Screen name="Dashboard" />
-      <Tabs.Screen name="Notifications" />
+      <Tabs.Screen name="Reports" />
       <Tabs.Screen name="Bluetooth" />
       <Tabs.Screen name="Profile" />
     </Tabs>
