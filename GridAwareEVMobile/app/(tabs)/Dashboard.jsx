@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react"; 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -15,6 +15,7 @@ const Dashboard = () => {
   const [isRegistered, setIsRegistered] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [deviceMac, setDeviceMac] = useState(null); 
+  const [isCharging, setIsCharging] = useState(null); // New state for charging status
   const [chartData, setChartData] = useState({
     labels: Array.from({ length: 10 }, () => ""),
     datasets: [
@@ -24,7 +25,7 @@ const Dashboard = () => {
     ],
   });
   
-  const fetchInterval = useRef(null); // Use a ref to store the interval, so it persists across renders
+  const fetchInterval = useRef(null); 
 
   // Function to verify device existence using the check_exists endpoint
   const verifyDeviceExists = async () => {
@@ -37,7 +38,6 @@ const Dashboard = () => {
         device_mac_address: deviceMac,
       });
 
-      // Check the "exists" field in the response
       return response.data.exists;
     } catch (error) {
       console.error("Error verifying device existence:", error);
@@ -45,7 +45,6 @@ const Dashboard = () => {
     }
   };
 
-  // Function to check device registration and set states accordingly
   const checkDeviceRegistration = async () => {
     try {
       const userJwt = await AsyncStorage.getItem('userJwt');
@@ -75,7 +74,6 @@ const Dashboard = () => {
     }
   };
 
-  // Function to fetch data
   const fetchData = async () => {
     if (!deviceMac) return;
 
@@ -86,7 +84,6 @@ const Dashboard = () => {
         return;
       }
 
-      // Check if the device is still registered before fetching data
       const exists = await verifyDeviceExists();
       if (!exists) {
         setIsRegistered(false);
@@ -105,6 +102,7 @@ const Dashboard = () => {
 
       if (Array.isArray(response.data) && response.data.length > 0) {
         const latestData = response.data[response.data.length - 1];
+        setIsCharging(latestData.is_charging); // Update charging status
         updateChartData(latestData.frequency, latestData.voltage, latestData.current);
       }
     } catch (error) {
@@ -123,17 +121,14 @@ const Dashboard = () => {
     }));
   };
 
-  // Use useFocusEffect to handle periodic data fetch
   useFocusEffect(
     React.useCallback(() => {
       checkDeviceRegistration();
 
-      // Only set interval if deviceMac is available
       if (deviceMac) {
         fetchInterval.current = setInterval(fetchData, 1000);
       }
 
-      // Cleanup interval when leaving the screen
       return () => {
         if (fetchInterval.current) {
           clearInterval(fetchInterval.current);
@@ -184,8 +179,14 @@ const Dashboard = () => {
             <Text style={[styles.legendText, { color: '#32cd32' }]}>• Current (A)</Text>
           </View>
 
+          <View style={styles.chargingStatusContainer}>
+            <Text style={[styles.chargingStatusText, { color: isCharging ? 'green' : 'red' }]}>
+              Charging Status: <Text style={styles.boldText}>{isCharging ? 'ON' : 'OFF'}</Text>
+            </Text>
+          </View>
+
           <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
-          <TouchableOpacity style={styles.sectionButton} onPress={() => router.push('(dashoptions)/frequencygraph')}>
+            <TouchableOpacity style={styles.sectionButton} onPress={() => router.push('(dashoptions)/frequencygraph')}>
               <Ionicons name="pulse" size={24} color="white" style={styles.icon} />
               <Text style={styles.buttonText}>Frequency</Text>
             </TouchableOpacity>
@@ -228,6 +229,9 @@ const styles = StyleSheet.create({
   headerText: { color: 'white', fontSize: 24, fontWeight: 'bold' },
   legendContainer: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 10 },
   legendText: { fontSize: 16, fontWeight: 'bold' },
+  chargingStatusContainer: { alignItems: 'center', marginVertical: 10 },
+  chargingStatusText: { fontSize: 18, fontWeight: 'bold' },
+  boldText: { fontWeight: 'bold' },
   scrollContainer: { flex: 1, marginTop: 20 },
   sectionButton: { backgroundColor: '#FF6F3C', padding: 20, borderRadius: 10, alignItems: 'center', marginBottom: 10 },
   icon: { marginRight: 10 },

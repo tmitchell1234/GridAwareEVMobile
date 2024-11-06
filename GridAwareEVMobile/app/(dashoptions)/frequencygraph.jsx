@@ -11,6 +11,7 @@ const API_KEY = Constants.expoConfig.extra.API_KEY;
 const FrequencyGraph = () => {
   const [latestFrequency, setLatestFrequency] = useState(null);
   const [chartData, setChartData] = useState([60]);
+  const [statusData, setStatusData] = useState([0]); // Charging status data (0 for OFF, 1 for ON)
   const [labels, setLabels] = useState(["0"]);
   const [isLoading, setIsLoading] = useState(true);
   const intervalRef = useRef(null);
@@ -22,7 +23,6 @@ const FrequencyGraph = () => {
       : parsedFrequency;
   };
 
-  // Verify if the device still exists
   const verifyDeviceExists = async () => {
     try {
       const deviceMac = await AsyncStorage.getItem('selectedDeviceMac');
@@ -41,7 +41,6 @@ const FrequencyGraph = () => {
     }
   };
 
-  // Fetch frequency data and handle edge cases
   const fetchFrequencyData = async () => {
     try {
       const deviceMac = await AsyncStorage.getItem('selectedDeviceMac');
@@ -62,7 +61,6 @@ const FrequencyGraph = () => {
         return;
       }
 
-      console.log("Fetching frequency data...");
       const response = await axios.post('https://gridawarecharging.com/api/get_data_in_recent_time_interval', {
         api_key: API_KEY,
         user_jwt: userJwt,
@@ -77,19 +75,25 @@ const FrequencyGraph = () => {
 
       const latestData = response.data[response.data.length - 1];
       const sanitizedFrequency = sanitizeFrequency(latestData.frequency);
-      console.log("Latest Frequency:", sanitizedFrequency);
-
       setLatestFrequency(sanitizedFrequency);
-      updateChartData(sanitizedFrequency);
+      updateChartData(sanitizedFrequency, latestData.is_charging ? 1 : 0); // Update with charging status
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching frequency data:', error);
     }
   };
 
-  const updateChartData = (newFrequency) => {
+  const updateChartData = (newFrequency, chargingStatus) => {
     setChartData((prevData) => {
       const updatedData = [...prevData, newFrequency];
+      if (updatedData.length > 20) {
+        updatedData.shift();
+      }
+      return updatedData;
+    });
+
+    setStatusData((prevData) => {
+      const updatedData = [...prevData, chargingStatus];
       if (updatedData.length > 20) {
         updatedData.shift();
       }
@@ -108,10 +112,8 @@ const FrequencyGraph = () => {
 
   useFocusEffect(
     React.useCallback(() => {
-      // Start fetching data when component is in focus
       intervalRef.current = setInterval(fetchFrequencyData, 1000);
 
-      // Clear interval when component loses focus
       return () => {
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
@@ -131,6 +133,8 @@ const FrequencyGraph = () => {
       </SafeAreaView>
     );
   }
+
+  const screenWidth = Dimensions.get("window").width;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -156,52 +160,80 @@ const FrequencyGraph = () => {
               datasets: [
                 {
                   data: chartData,
+                  color: () => `rgba(255, 111, 60, 1)`, // Frequency color
                 },
               ],
             }}
-            width={Dimensions.get("window").width * 1.5}
-            height={Dimensions.get("window").height * 0.45}
+            width={screenWidth * 1.5}
+            height={Dimensions.get("window").height * 0.4}
             yAxisSuffix=" Hz"
-            yAxisInterval={1}
             chartConfig={{
-              backgroundColor: "#0D47A1",
               backgroundGradientFrom: "#1976D2",
               backgroundGradientTo: "#64B5F6",
               decimalPlaces: 2,
               color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
               labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              style: {
-                borderRadius: 16,
-              },
-              propsForDots: {
-                r: "5",
-                strokeWidth: "2",
-                stroke: "#FF6F3C",
-              },
+              style: { borderRadius: 16 },
+              propsForDots: { r: "5", strokeWidth: "2", stroke: "#FF6F3C" },
             }}
             bezier
-            yAxisMin={55}
-            yAxisMax={64}
-            withDots={true}
-            withInnerLines={true}
             style={styles.chartStyle}
           />
         </View>
       </ScrollView>
+
+      {/* Charging Status Graph */}
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Charging Status</Text>
+      </View>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <View style={styles.chartContainer}>
+          <LineChart
+            data={{
+              labels: labels,
+              datasets: [
+                {
+                  data: statusData,
+                  color: (opacity = 1, index) => statusData[index] === 1 ? `rgba(34, 203, 34, ${opacity})` : `rgba(255, 99, 71, ${opacity})`, // Green for ON, Red for OFF
+                },
+              ],
+            }}
+            width={screenWidth * 1.5}
+            height={Dimensions.get("window").height * 0.2}
+            yAxisSuffix=""
+            chartConfig={{
+              backgroundGradientFrom: "#2E2E2E",
+              backgroundGradientTo: "#5E5E5E",
+              decimalPlaces: 0,
+              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              style: { borderRadius: 16 },
+            }}
+            style={[styles.chartStyle, { marginTop: 10 }]}
+          />
+        </View>
+      </ScrollView>
+
+      {/* Legend for Charging Status */}
+      <View style={styles.legendContainer}>
+        <Text style={[styles.legendText, { color: 'white' }]}>• 0 (OFF)</Text>
+        <Text style={[styles.legendText, { color: 'white' }]}>• 1 (ON)</Text>
+      </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0A0E27', padding: 20 },
-  header: { alignItems: 'center', marginBottom: 20 },
-  headerText: { color: '#FF6F3C', fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
+  header: { alignItems: 'center', marginBottom: 10 },
+  headerText: { color: '#FF6F3C', fontSize: 20, fontWeight: 'bold' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { color: '#FFF', fontSize: 18, marginTop: 10 },
-  frequencyContainer: { justifyContent: 'center', alignItems: 'center', marginVertical: 15 },
-  frequencyText: { color: '#FFFFFF', fontSize: 28, fontWeight: 'bold' },
+  frequencyContainer: { alignItems: 'center', marginVertical: 15 },
+  frequencyText: { color: '#FFFFFF', fontSize: 20, fontWeight: 'bold' },
   chartContainer: { paddingHorizontal: 10 },
-  chartStyle: { marginVertical: 20, borderRadius: 16 },
+  chartStyle: { marginVertical: 10, borderRadius: 16 },
   swipeHintContainer: {
     alignItems: 'center',
     marginBottom: 10,
@@ -214,8 +246,13 @@ const styles = StyleSheet.create({
     color: '#FF6F3C',
     fontSize: 14,
     fontWeight: '600',
-    textAlign: 'center',
-  },  
+  },
+  legendContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 10,
+  },
+  legendText: { fontSize: 16, fontWeight: 'bold', marginHorizontal: 10 },
 });
 
 export default FrequencyGraph;
