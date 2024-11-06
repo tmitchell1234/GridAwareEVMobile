@@ -4,7 +4,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { BarChart } from 'react-native-chart-kit';
-import { useFocusEffect } from '@react-navigation/native'; // Import useFocusEffect
+import { useFocusEffect } from '@react-navigation/native';
 
 const API_KEY = Constants.expoConfig.extra.API_KEY;
 
@@ -15,7 +15,6 @@ const CurrentGraph = () => {
   const [isLoading, setIsLoading] = useState(true);
   const intervalRef = useRef(null);
 
-  // Verify if the device still exists
   const verifyDeviceExists = async () => {
     try {
       const deviceMac = await AsyncStorage.getItem('selectedDeviceMac');
@@ -34,7 +33,6 @@ const CurrentGraph = () => {
     }
   };
 
-  // Fetch current data and handle edge cases
   const fetchCurrentData = async () => {
     try {
       const deviceMac = await AsyncStorage.getItem('selectedDeviceMac');
@@ -81,7 +79,6 @@ const CurrentGraph = () => {
     }
   };
 
-  // Update chart data and labels for each new current value
   const updateChartData = (newCurrent) => {
     setChartData((prevData) => {
       const updatedData = [...prevData, parseFloat(newCurrent)];
@@ -103,10 +100,8 @@ const CurrentGraph = () => {
 
   useFocusEffect(
     React.useCallback(() => {
-      // Start fetching data when component is in focus
       intervalRef.current = setInterval(fetchCurrentData, 1000);
 
-      // Clear interval when component loses focus
       return () => {
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
@@ -133,10 +128,9 @@ const CurrentGraph = () => {
         <Text style={styles.headerText}>Live Current Data</Text>
       </View>
 
-      {/* Display latest current */}
       <View style={styles.currentContainer}>
         <Text style={styles.currentText}>
-          Latest Current: {latestCurrent ? `${latestCurrent} A` : 'No data'}
+          Latest Current: <Text style={styles.currentValue}>{latestCurrent ? `${latestCurrent} A` : 'No data'}</Text>
         </Text>
       </View>
 
@@ -144,8 +138,6 @@ const CurrentGraph = () => {
         <Text style={styles.swipeHintText}>Swipe left or right to view more data</Text>
       </View>
 
-
-      {/* Bar Chart for real-time updates */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View style={styles.chartContainer}>
           <BarChart
@@ -157,29 +149,29 @@ const CurrentGraph = () => {
                 },
               ],
             }}
-            width={Dimensions.get("window").width * 1.5} // Expand width for scrolling
+            width={Dimensions.get("window").width * 1.5}
             height={Dimensions.get("window").height * 0.45}
             yAxisSuffix=" A"
             yAxisInterval={1}
             chartConfig={{
-              backgroundColor: "#022173",
-              backgroundGradientFrom: "#0D0D3A",
-              backgroundGradientTo: "#2E2E82",
+              backgroundColor: "#140F2D",
+              backgroundGradientFrom: "#201B46",
+              backgroundGradientTo: "#312C5A",
               decimalPlaces: 2,
-              color: (opacity = 1) => `rgba(138, 43, 226, ${opacity})`, // Purple color for the bars
+              color: (opacity = 1) => `rgba(138, 43, 226, ${opacity})`, 
               labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
               style: {
                 borderRadius: 16,
               },
-              fillShadowGradient: "#8A2BE2", // Bright purple fill
+              fillShadowGradient: "#8A2BE2", 
               fillShadowGradientOpacity: 1,
               propsForBackgroundLines: {
-                stroke: "#FFFFFF",
+                stroke: "rgba(255, 255, 255, 0.1)",
               },
             }}
             fromZero
-            yAxisMin={0}  // Minimum current level
-            yAxisMax={5}  // Maximum current level
+            yAxisMin={0}  
+            yAxisMax={5}  
             style={{
               marginVertical: 20,
               borderRadius: 16,
@@ -194,12 +186,13 @@ const CurrentGraph = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0A0E27', padding: 20 },
   header: { alignItems: 'center', marginBottom: 20 },
-  headerText: { color: 'white', fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
+  headerText: { color: '#8A2BE2', fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { color: '#FFF', fontSize: 18, marginTop: 10 },
-  currentContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
-  currentText: { color: '#FFFFFF', fontSize: 28, fontWeight: 'bold' },
-  chartContainer: { height: 'auto', padding: 10 },
+  currentContainer: { alignItems: 'center', marginBottom: 10 },
+  currentText: { color: '#FFFFFF', fontSize: 20, fontWeight: '600' },
+  currentValue: { color: '#8A2BE2', fontWeight: 'bold' },
+  chartContainer: { paddingHorizontal: 10 },
   swipeHintContainer: {
     alignItems: 'center',
     marginBottom: 10,
@@ -209,7 +202,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   swipeHintText: {
-    color: '#FF6F3C',
+    color: '#8A2BE2',
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',

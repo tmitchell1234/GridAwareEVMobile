@@ -11,7 +11,7 @@ const API_KEY = Constants.expoConfig.extra.API_KEY;
 const FrequencyGraph = () => {
   const [latestFrequency, setLatestFrequency] = useState(null);
   const [chartData, setChartData] = useState([60]);
-  const [statusData, setStatusData] = useState([0]); // Charging status data (0 for OFF, 1 for ON)
+  const [statusData, setStatusData] = useState([0]); 
   const [labels, setLabels] = useState(["0"]);
   const [isLoading, setIsLoading] = useState(true);
   const intervalRef = useRef(null);
@@ -76,7 +76,7 @@ const FrequencyGraph = () => {
       const latestData = response.data[response.data.length - 1];
       const sanitizedFrequency = sanitizeFrequency(latestData.frequency);
       setLatestFrequency(sanitizedFrequency);
-      updateChartData(sanitizedFrequency, latestData.is_charging ? 1 : 0); // Update with charging status
+      updateChartData(sanitizedFrequency, latestData.is_charging ? 1 : 0); 
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching frequency data:', error);
@@ -144,7 +144,7 @@ const FrequencyGraph = () => {
 
       <View style={styles.frequencyContainer}>
         <Text style={styles.frequencyText}>
-          Latest Frequency: {latestFrequency ? `${latestFrequency} Hz` : 'No data'}
+          Latest Frequency: <Text style={styles.frequencyValue}>{latestFrequency ? `${latestFrequency} Hz` : 'No data'}</Text>
         </Text>
       </View>
 
@@ -160,7 +160,7 @@ const FrequencyGraph = () => {
               datasets: [
                 {
                   data: chartData,
-                  color: () => `rgba(255, 111, 60, 1)`, // Frequency color
+                  color: () => `rgba(255, 111, 60, 1)`,
                 },
               ],
             }}
@@ -168,8 +168,8 @@ const FrequencyGraph = () => {
             height={Dimensions.get("window").height * 0.4}
             yAxisSuffix=" Hz"
             chartConfig={{
-              backgroundGradientFrom: "#1976D2",
-              backgroundGradientTo: "#64B5F6",
+              backgroundGradientFrom: "#1C2033",
+              backgroundGradientTo: "#2F3651",
               decimalPlaces: 2,
               color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
               labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
@@ -182,7 +182,6 @@ const FrequencyGraph = () => {
         </View>
       </ScrollView>
 
-      {/* Charging Status Graph */}
       <View style={styles.header}>
         <Text style={styles.headerText}>Charging Status</Text>
       </View>
@@ -195,7 +194,7 @@ const FrequencyGraph = () => {
               datasets: [
                 {
                   data: statusData,
-                  color: (opacity = 1, index) => statusData[index] === 1 ? `rgba(34, 203, 34, ${opacity})` : `rgba(255, 99, 71, ${opacity})`, // Green for ON, Red for OFF
+                  color: (opacity = 1, index) => statusData[index] === 1 ? `rgba(34, 203, 34, ${opacity})` : `rgba(255, 99, 71, ${opacity})`,
                 },
               ],
             }}
@@ -215,7 +214,6 @@ const FrequencyGraph = () => {
         </View>
       </ScrollView>
 
-      {/* Legend for Charging Status */}
       <View style={styles.legendContainer}>
         <Text style={[styles.legendText, { color: 'white' }]}>• 0 (OFF)</Text>
         <Text style={[styles.legendText, { color: 'white' }]}>• 1 (ON)</Text>
@@ -231,7 +229,8 @@ const styles = StyleSheet.create({
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { color: '#FFF', fontSize: 18, marginTop: 10 },
   frequencyContainer: { alignItems: 'center', marginVertical: 15 },
-  frequencyText: { color: '#FFFFFF', fontSize: 20, fontWeight: 'bold' },
+  frequencyText: { color: '#FFFFFF', fontSize: 20, fontWeight: '600' },
+  frequencyValue: { color: '#FF6F3C', fontWeight: 'bold' },
   chartContainer: { paddingHorizontal: 10 },
   chartStyle: { marginVertical: 10, borderRadius: 16 },
   swipeHintContainer: {

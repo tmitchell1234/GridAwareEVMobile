@@ -6,6 +6,7 @@ import { requestMultiple, PERMISSIONS, RESULTS } from 'react-native-permissions'
 import { Buffer } from 'buffer';  // Import Buffer
 import Constants from 'expo-constants';
 
+
 const manager = new BleManager();
 const API_KEY = Constants.expoConfig.extra.API_KEY;  // API_KEY from app.json
 
@@ -226,7 +227,7 @@ const Bluetooth = () => {
                 }}
               >
                 <Text style={styles.deviceText}>
-                  {item.name || 'Unnamed Device'} (ID: {item.id})
+                {item.name || 'ESP32'}
                 </Text>
               </TouchableOpacity>
             )}

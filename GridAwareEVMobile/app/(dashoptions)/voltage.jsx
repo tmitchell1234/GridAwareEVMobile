@@ -15,7 +15,6 @@ const VoltageGraph = () => {
   const [isLoading, setIsLoading] = useState(true);
   const intervalRef = useRef(null);
 
-  // Function to verify device existence
   const verifyDeviceExists = async () => {
     try {
       const deviceMac = await AsyncStorage.getItem('selectedDeviceMac');
@@ -34,7 +33,6 @@ const VoltageGraph = () => {
     }
   };
 
-  // Fetch voltage data from the API with edge case handling
   const fetchVoltageData = async () => {
     try {
       const deviceMac = await AsyncStorage.getItem('selectedDeviceMac');
@@ -81,7 +79,6 @@ const VoltageGraph = () => {
     }
   };
 
-  // Update chart data and labels
   const updateChartData = (newVoltage) => {
     setChartData((prevData) => {
       const updatedData = [...prevData, parseFloat(newVoltage)];
@@ -101,7 +98,6 @@ const VoltageGraph = () => {
     });
   };
 
-  // Use useFocusEffect to manage the interval only when the component is in focus
   useFocusEffect(
     React.useCallback(() => {
       intervalRef.current = setInterval(fetchVoltageData, 1000);
@@ -132,10 +128,9 @@ const VoltageGraph = () => {
         <Text style={styles.headerText}>Live Voltage Data</Text>
       </View>
 
-      {/* Display latest voltage */}
       <View style={styles.voltageContainer}>
         <Text style={styles.voltageText}>
-          Latest Voltage: {latestVoltage ? `${latestVoltage} V` : 'No data'}
+          Latest Voltage: <Text style={styles.voltageValue}>{latestVoltage ? `${latestVoltage} V` : 'No data'}</Text>
         </Text>
       </View>
 
@@ -143,7 +138,6 @@ const VoltageGraph = () => {
         <Text style={styles.swipeHintText}>Swipe left or right to view more data</Text>
       </View>
 
-      {/* Bar Chart for real-time updates */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View style={styles.chartContainer}>
           <BarChart
@@ -155,24 +149,23 @@ const VoltageGraph = () => {
                 },
               ],
             }}
-            width={Dimensions.get("window").width * 1.5} // Expand width for scrolling
+            width={Dimensions.get("window").width * 1.5}
             height={Dimensions.get("window").height * 0.45}
             yAxisSuffix=" V"
             yAxisInterval={1}
             chartConfig={{
-              backgroundColor: "#022173",
-              backgroundGradientFrom: "#1c3faa",
-              backgroundGradientTo: "#226bdf",
+              backgroundGradientFrom: "#1a1e3a",
+              backgroundGradientTo: "#2c2f46",
               decimalPlaces: 2,
-              color: (opacity = 1) => `rgba(255, 111, 60, ${opacity})`, // Fiery orange for the bars
+              color: (opacity = 1) => `rgba(130, 170, 255, ${opacity})`,
               labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
               style: {
                 borderRadius: 16,
               },
-              fillShadowGradient: "#FF6F3C", 
+              fillShadowGradient: "#4D9FF9",
               fillShadowGradientOpacity: 1,
               propsForBackgroundLines: {
-                stroke: "#FFFFFF",
+                stroke: "rgba(255, 255, 255, 0.2)",
               },
             }}
             fromZero
@@ -192,12 +185,13 @@ const VoltageGraph = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0A0E27', padding: 20 },
   header: { alignItems: 'center', marginBottom: 20 },
-  headerText: { color: 'white', fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
+  headerText: { color: '#FF6F3C', fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { color: '#FFF', fontSize: 18, marginTop: 10 },
-  voltageContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
-  voltageText: { color: '#FFFFFF', fontSize: 28, fontWeight: 'bold' },
-  chartContainer: { height: 'auto', padding: 10 },
+  voltageContainer: { alignItems: 'center', marginBottom: 10 },
+  voltageText: { color: '#FFFFFF', fontSize: 20, fontWeight: '600' },
+  voltageValue: { color: '#4D9FF9', fontWeight: 'bold' },
+  chartContainer: { paddingHorizontal: 10 },
   swipeHintContainer: {
     alignItems: 'center',
     marginBottom: 10,
@@ -207,7 +201,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   swipeHintText: {
-    color: '#FF6F3C',
+    color: '#4D9FF9',
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',

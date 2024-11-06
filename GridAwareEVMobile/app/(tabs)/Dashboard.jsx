@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react"; 
+import React, { useState, useEffect, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -15,7 +15,7 @@ const Dashboard = () => {
   const [isRegistered, setIsRegistered] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [deviceMac, setDeviceMac] = useState(null); 
-  const [isCharging, setIsCharging] = useState(null); // New state for charging status
+  const [isCharging, setIsCharging] = useState(null);
   const [chartData, setChartData] = useState({
     labels: Array.from({ length: 10 }, () => ""),
     datasets: [
@@ -27,7 +27,6 @@ const Dashboard = () => {
   
   const fetchInterval = useRef(null); 
 
-  // Function to verify device existence using the check_exists endpoint
   const verifyDeviceExists = async () => {
     try {
       const userJwt = await AsyncStorage.getItem('userJwt');
@@ -102,7 +101,7 @@ const Dashboard = () => {
 
       if (Array.isArray(response.data) && response.data.length > 0) {
         const latestData = response.data[response.data.length - 1];
-        setIsCharging(latestData.is_charging); // Update charging status
+        setIsCharging(latestData.is_charging);
         updateChartData(latestData.frequency, latestData.voltage, latestData.current);
       }
     } catch (error) {
@@ -158,9 +157,8 @@ const Dashboard = () => {
             yAxisSuffix=""
             yAxisInterval={1}
             chartConfig={{
-              backgroundColor: "#1c1c1c",
-              backgroundGradientFrom: "#2c2c2c",
-              backgroundGradientTo: "#3c3c3c",
+              backgroundGradientFrom: "#1A2331",
+              backgroundGradientTo: "#3A4C73",
               decimalPlaces: 2,
               color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
               labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
@@ -203,7 +201,7 @@ const Dashboard = () => {
 
             <TouchableOpacity style={styles.sectionButton} onPress={() => router.push('(dashoptions)/ischarging')}>
               <Ionicons name="battery-charging" size={24} color="white" style={styles.icon} />
-              <Text style={styles.buttonText}>Charge Status</Text>
+              <Text style={styles.buttonText}>Charge Statistics</Text>
             </TouchableOpacity>
           </ScrollView>
         </>
