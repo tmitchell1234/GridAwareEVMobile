@@ -152,7 +152,7 @@ const FrequencyGraph = () => {
         <Text style={styles.swipeHintText}>Swipe left or right to view more data</Text>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
         <View style={styles.chartContainer}>
           <LineChart
             data={{
@@ -160,21 +160,22 @@ const FrequencyGraph = () => {
               datasets: [
                 {
                   data: chartData,
-                  color: () => `rgba(255, 111, 60, 1)`,
+                  color: () => `rgba(0, 191, 255, 1)`, // Updated color to make it visually appealing
                 },
               ],
             }}
             width={screenWidth * 1.5}
             height={Dimensions.get("window").height * 0.4}
             yAxisSuffix=" Hz"
+            yAxisInterval={1} // Ensure a better representation of axis values
             chartConfig={{
-              backgroundGradientFrom: "#1C2033",
-              backgroundGradientTo: "#2F3651",
+              backgroundGradientFrom: "#1F1F3B",
+              backgroundGradientTo: "#3C3C62",
               decimalPlaces: 2,
               color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
               labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
               style: { borderRadius: 16 },
-              propsForDots: { r: "5", strokeWidth: "2", stroke: "#FF6F3C" },
+              propsForDots: { r: "6", strokeWidth: "2", stroke: "#00BFFF" },
             }}
             bezier
             style={styles.chartStyle}
@@ -186,7 +187,7 @@ const FrequencyGraph = () => {
         <Text style={styles.headerText}>Charging Status</Text>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
         <View style={styles.chartContainer}>
           <LineChart
             data={{
@@ -194,13 +195,15 @@ const FrequencyGraph = () => {
               datasets: [
                 {
                   data: statusData,
-                  color: (opacity = 1, index) => statusData[index] === 1 ? `rgba(34, 203, 34, ${opacity})` : `rgba(255, 99, 71, ${opacity})`,
+                  color: (opacity = 1) => `rgba(50, 205, 50, ${opacity})`, // Updated color to vibrant green
                 },
               ],
             }}
             width={screenWidth * 1.5}
             height={Dimensions.get("window").height * 0.2}
             yAxisSuffix=""
+            yAxisInterval={1}
+            fromZero
             chartConfig={{
               backgroundGradientFrom: "#2E2E2E",
               backgroundGradientTo: "#5E5E5E",
@@ -225,12 +228,12 @@ const FrequencyGraph = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0A0E27', padding: 20 },
   header: { alignItems: 'center', marginBottom: 10 },
-  headerText: { color: '#FF6F3C', fontSize: 20, fontWeight: 'bold' },
+  headerText: { color: '#00BFFF', fontSize: 22, fontWeight: 'bold' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { color: '#FFF', fontSize: 18, marginTop: 10 },
   frequencyContainer: { alignItems: 'center', marginVertical: 15 },
   frequencyText: { color: '#FFFFFF', fontSize: 20, fontWeight: '600' },
-  frequencyValue: { color: '#FF6F3C', fontWeight: 'bold' },
+  frequencyValue: { color: '#00BFFF', fontWeight: 'bold' },
   chartContainer: { paddingHorizontal: 10 },
   chartStyle: { marginVertical: 10, borderRadius: 16 },
   swipeHintContainer: {
@@ -242,7 +245,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   swipeHintText: {
-    color: '#FF6F3C',
+    color: '#00BFFF',
     fontSize: 14,
     fontWeight: '600',
   },

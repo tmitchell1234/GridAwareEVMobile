@@ -12,7 +12,7 @@ const Reports = () => {
   const [reportData, setReportData] = useState(null);
   const [dates, setDates] = useState([]);
 
-  // Generate the last 7 days as selectable dates
+  // Generate the last 7 days as selectable dates, including today
   useEffect(() => {
     const today = new Date();
     const last7Days = [];
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FF6F3C',
+    color: '#00BFFF',
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -136,14 +136,15 @@ const styles = StyleSheet.create({
   },
   dateButton: {
     backgroundColor: '#3C415C',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    marginHorizontal: 5,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    marginHorizontal: 6,
     alignItems: 'center',
   },
   selectedDateButton: {
-    backgroundColor: '#FF6F3C',
+    backgroundColor: '#00BFFF',
+    transform: [{ scale: 1.1 }], // Slightly increase size when selected for emphasis
   },
   dateText: {
     fontSize: 16,
@@ -151,31 +152,36 @@ const styles = StyleSheet.create({
   },
   reportContainer: {
     backgroundColor: '#1A1E3A',
-    borderRadius: 10,
-    padding: 20,
-    marginTop: 20,
+    borderRadius: 15,
+    padding: 25,
+    marginTop: 25,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 6,
   },
   reportTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#FF6F3C',
-    marginBottom: 15,
+    color: '#00BFFF',
+    marginBottom: 20,
     textAlign: 'center',
   },
   reportContent: {
     borderTopWidth: 1,
     borderTopColor: '#2C314B',
-    paddingTop: 10,
+    paddingTop: 15,
   },
   reportItem: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#F3F3F3',
-    marginVertical: 5,
+    marginVertical: 8,
     flexDirection: 'row',
   },
   reportValue: {
     fontWeight: 'bold',
-    color: '#FF6F3C',
+    color: '#00BFFF',
   },
 });
 

@@ -147,7 +147,7 @@ const Dashboard = () => {
       </View>
 
       {isLoading ? (
-        <ActivityIndicator size="large" color="#FF6F3C" />
+        <ActivityIndicator size="large" color="#00BFFF" />
       ) : isRegistered ? (
         <>
           <LineChart
@@ -157,18 +157,18 @@ const Dashboard = () => {
             yAxisSuffix=""
             yAxisInterval={1}
             chartConfig={{
-              backgroundGradientFrom: "#1A2331",
-              backgroundGradientTo: "#3A4C73",
+              backgroundGradientFrom: "#1A1E3A",
+              backgroundGradientTo: "#2B3467",
               decimalPlaces: 2,
               color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
               labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              style: { borderRadius: 16 },
-              propsForDots: { r: "5", strokeWidth: "2" },
+              style: { borderRadius: 20 },
+              propsForDots: { r: "6", strokeWidth: "2", stroke: "#00BFFF" },
             }}
             bezier
             withInnerLines={false}
             withVerticalLabels={false}
-            style={{ marginVertical: 20, borderRadius: 16 }}
+            style={{ marginVertical: 20, borderRadius: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 }}
           />
 
           <View style={styles.legendContainer}>
@@ -178,30 +178,35 @@ const Dashboard = () => {
           </View>
 
           <View style={styles.chargingStatusContainer}>
-            <Text style={[styles.chargingStatusText, { color: isCharging ? 'green' : 'red' }]}>
+            <Text style={[styles.chargingStatusText, { color: isCharging ? '#00FF7F' : '#FF6347' }]}>
               Charging Status: <Text style={styles.boldText}>{isCharging ? 'ON' : 'OFF'}</Text>
             </Text>
           </View>
 
           <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
             <TouchableOpacity style={styles.sectionButton} onPress={() => router.push('(dashoptions)/frequencygraph')}>
-              <Ionicons name="pulse" size={24} color="white" style={styles.icon} />
+              <Ionicons name="pulse" size={26} color="white" style={styles.icon} />
               <Text style={styles.buttonText}>Frequency</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.sectionButton} onPress={() => router.push('(dashoptions)/current')}>
-              <MaterialCommunityIcons name="current-ac" size={24} color="white" style={styles.icon} />
+              <MaterialCommunityIcons name="current-ac" size={26} color="white" style={styles.icon} />
               <Text style={styles.buttonText}>Current</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.sectionButton} onPress={() => router.push('(dashoptions)/voltage')}>
-              <Ionicons name="flash" size={24} color="white" style={styles.icon} />
+              <Ionicons name="flash" size={26} color="white" style={styles.icon} />
               <Text style={styles.buttonText}>Voltage</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.sectionButton} onPress={() => router.push('(dashoptions)/ischarging')}>
-              <Ionicons name="battery-charging" size={24} color="white" style={styles.icon} />
+              <Ionicons name="battery-charging" size={26} color="white" style={styles.icon} />
               <Text style={styles.buttonText}>Charge Statistics</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.sectionButton} onPress={() => router.push('(dashoptions)/batterystatus')}>
+              <Ionicons name="battery-half" size={26} color="white" style={styles.icon} />
+              <Text style={styles.buttonText}>Battery Status</Text>
             </TouchableOpacity>
           </ScrollView>
         </>
@@ -223,22 +228,22 @@ const Dashboard = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0A0E27', padding: 20 },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  logo: { width: 50, height: 50, borderRadius: 25, marginRight: 10 },
-  headerText: { color: 'white', fontSize: 24, fontWeight: 'bold' },
-  legendContainer: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 10 },
+  logo: { width: 60, height: 60, borderRadius: 30, marginRight: 12 },
+  headerText: { color: 'white', fontSize: 26, fontWeight: 'bold' },
+  legendContainer: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 12 },
   legendText: { fontSize: 16, fontWeight: 'bold' },
-  chargingStatusContainer: { alignItems: 'center', marginVertical: 10 },
-  chargingStatusText: { fontSize: 18, fontWeight: 'bold' },
+  chargingStatusContainer: { alignItems: 'center', marginVertical: 15 },
+  chargingStatusText: { fontSize: 20, fontWeight: 'bold' },
   boldText: { fontWeight: 'bold' },
-  scrollContainer: { flex: 1, marginTop: 20 },
-  sectionButton: { backgroundColor: '#FF6F3C', padding: 20, borderRadius: 10, alignItems: 'center', marginBottom: 10 },
-  icon: { marginRight: 10 },
-  buttonText: { color: 'white', fontSize: 18 },
+  scrollContainer: { flex: 1, marginTop: 25 },
+  sectionButton: { backgroundColor: '#3A4C73', padding: 20, borderRadius: 15, alignItems: 'center', marginBottom: 15, flexDirection: 'row', shadowColor: "#000", shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 },
+  icon: { marginRight: 15 },
+  buttonText: { color: 'white', fontSize: 18, fontWeight: '600' },
   promptContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  promptText: { color: '#FFF', fontSize: 22, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' },
+  promptText: { color: '#FFF', fontSize: 24, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' },
   promptDescription: { color: '#BBB', fontSize: 16, textAlign: 'center', paddingHorizontal: 30, marginBottom: 20 },
-  connectButton: { backgroundColor: '#1A1E3A', paddingVertical: 15, paddingHorizontal: 30, borderRadius: 10 },
-  connectButtonText: { color: '#FF6F3C', fontSize: 16, fontWeight: 'bold' },
+  connectButton: { backgroundColor: '#2B3467', paddingVertical: 18, paddingHorizontal: 35, borderRadius: 15, shadowColor: "#000", shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 },
+  connectButtonText: { color: '#00BFFF', fontSize: 18, fontWeight: 'bold' },
 });
 
 export default Dashboard;
