@@ -17,7 +17,6 @@ const Profile = () => {
   const [userFullName, setUserFullName] = useState('User');
   const [isLoading, setIsLoading] = useState(true); 
 
-
   // Fetch user's full name from AsyncStorage
   const fetchUserFullName = async () => {
     const firstName = await AsyncStorage.getItem('userFirstName') || 'User';
@@ -25,8 +24,8 @@ const Profile = () => {
     setUserFullName(`${firstName} ${lastName}`);
   };
 
-   // Fetch devices and user name on component mount
-   useEffect(() => {
+  // Fetch devices and user name on component mount
+  useEffect(() => {
     fetchUserFullName();
     fetchDevices();
   }, []);
@@ -188,7 +187,7 @@ const Profile = () => {
           <TextInput
             style={styles.input}
             placeholder="Enter New First Name"
-            placeholderTextColor="#888"
+            placeholderTextColor="#A9A9A9"
             value={firstNameInput}
             onChangeText={setFirstNameInput}
           />
@@ -198,7 +197,7 @@ const Profile = () => {
           <TextInput
             style={styles.input}
             placeholder="Enter New Last Name"
-            placeholderTextColor="#888"
+            placeholderTextColor="#A9A9A9"
             value={lastNameInput}
             onChangeText={setLastNameInput}
           />
@@ -247,148 +246,192 @@ const Profile = () => {
 const styles = StyleSheet.create({
   safeAreaContainer: {
     flex: 1,
-    backgroundColor: '#0A0E27',
+    backgroundColor: '#0D1321',
   },
   scrollContainer: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 30,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 25,
+    marginBottom: 30,
   },
   profileImage: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    marginBottom: 8,
-    borderColor: '#FF6F3C',
-    borderWidth: 2,
+    marginBottom: 15,
+    borderColor: '#00CFFD',
+    borderWidth: 2.5,
   },
   userNameText: {
-    fontSize: 20,
-    color: '#FFFFFF',
-    fontWeight: '600',
-    marginVertical: 8,
+    fontSize: 26,
+    color: '#E1E4E8',
+    fontWeight: '700',
     textAlign: 'center',
+    marginVertical: 8,
   },
   section: {
-    backgroundColor: '#1A1E3A',
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 20,
+    backgroundColor: '#16233C',
+    borderRadius: 18,
+    padding: 22,
+    marginBottom: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
   },
   sectionTitle: {
-    fontSize: 20,
-    color: '#FF6F3C',
-    marginBottom: 15,
+    fontSize: 22,
+    color: '#00CFFD',
+    marginBottom: 18,
     textAlign: 'center',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   input: {
-    backgroundColor: '#333A4D',
+    backgroundColor: '#2B324B',
     color: '#FFFFFF',
-    padding: 15,
-    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    borderRadius: 12,
     marginBottom: 12,
     fontSize: 16,
-    borderColor: '#4D9FF9',
+    borderColor: '#00CFFD',
     borderWidth: 1,
+    textAlign: 'center',
   },
   saveButton: {
-    backgroundColor: '#FF6F3C',
+    backgroundColor: '#00CFFD',
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: 12,
     marginTop: 10,
     alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 6,
   },
   saveButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   optionButton: {
-    backgroundColor: '#1A1E3A',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
+    backgroundColor: '#1D2A40',
+    paddingVertical: 14,
+    borderRadius: 14,
+    marginBottom: 16,
     alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   optionText: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: '#E1E4E8',
+    fontWeight: '600',
   },
   flatListContent: {
-    paddingBottom: 20,
+    paddingBottom: 30,
   },
   deviceItem: {
-    backgroundColor: '#232A45',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
+    backgroundColor: '#23345A',
+    padding: 14,
+    borderRadius: 14,
+    marginBottom: 12,
     alignItems: 'center',
-    borderColor: '#FF6F3C',
+    borderColor: '#00CFFD',
     borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 6,
   },
   deviceText: {
     fontSize: 16,
     color: '#FFFFFF',
+    fontWeight: '600',
   },
   emptyListText: {
-    color: '#BBB',
+    color: '#A1A5B0',
     fontSize: 16,
     textAlign: 'center',
-    marginVertical: 20,
+    marginVertical: 25,
   },
   selectedDeviceContainer: {
-    backgroundColor: '#1A1E3A',
+    backgroundColor: '#1D2A40',
     padding: 20,
-    borderRadius: 15,
+    borderRadius: 20,
     marginTop: 20,
     alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
   },
   selectedDeviceText: {
-    color: '#FF6F3C',
+    color: '#00CFFD',
     fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 10,
+    fontWeight: '700',
+    marginBottom: 12,
   },
   unregisterButton: {
-    backgroundColor: '#FF6F3C',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    marginTop: 10,
+    backgroundColor: '#FF5A3C',
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginTop: 12,
     alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 6,
   },
   unregisterButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   deleteButton: {
-    backgroundColor: '#B22222',
-    padding: 15,
-    borderRadius: 10,
+    backgroundColor: '#D9534F',
+    paddingVertical: 14,
+    borderRadius: 14,
     alignItems: 'center',
-    marginVertical: 10,
+    marginVertical: 14,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
   },
   deleteButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   logoutButton: {
-    backgroundColor: '#FF6F3C',
-    padding: 15,
-    borderRadius: 25,
+    backgroundColor: '#00CFFD',
+    paddingVertical: 14,
+    borderRadius: 20,
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 22,
     alignSelf: 'stretch',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   logoutButtonText: {
     color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });
 

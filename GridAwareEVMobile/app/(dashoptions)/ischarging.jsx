@@ -78,14 +78,14 @@ const ChargingGraph = () => {
       value: isChargingData.trueCount,
       color: "#00FF7F", // Green for charging
       legendFontColor: "#FFF",
-      legendFontSize: 15,
+      legendFontSize: 16,
     },
     {
       name: `Not Charging (${notChargingPercentage}%)`,
       value: isChargingData.falseCount,
       color: "#FF6F3C", // Red-orange for not charging
       legendFontColor: "#FFF",
-      legendFontSize: 15,
+      legendFontSize: 16,
     },
   ];
 
@@ -95,7 +95,7 @@ const ChargingGraph = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FF6F3C" />
+          <ActivityIndicator size="large" color="#00BFFF" />
           <Text style={styles.loadingText}>Fetching Charging Data...</Text>
         </View>
       </SafeAreaView>
@@ -105,26 +105,41 @@ const ChargingGraph = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerText}>Charging Status</Text>
+        <Text style={styles.headerText}>Charging Status Overview</Text>
       </View>
 
       <PieChart
         data={chartData}
         width={screenWidth - 40}
-        height={280} // Increase the size of the chart
+        height={300} // Increase the size of the chart
         chartConfig={{
-          backgroundColor: "#022173",
-          backgroundGradientFrom: "#1c3faa",
-          backgroundGradientTo: "#226bdf",
+          backgroundColor: "#0A0E27",
+          backgroundGradientFrom: "#1A2331",
+          backgroundGradientTo: "#3A4C73",
           color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
           labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+          propsForLabels: { fontSize: 18, fontWeight: 'bold' },
         }}
         accessor="value"
         backgroundColor="transparent"
         paddingLeft="15"
         absolute // Display percentages inside pie chart
         hasLegend={true} // Show legend with updated percentages
+        style={{
+          marginVertical: 20,
+          borderRadius: 20,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          elevation: 8,
+        }}
       />
+
+      <View style={styles.summaryContainer}>
+        <Text style={styles.summaryText}>Charging Instances: <Text style={styles.summaryValue}>{isChargingData.trueCount}</Text></Text>
+        <Text style={styles.summaryText}>Not Charging Instances: <Text style={styles.summaryValue}>{isChargingData.falseCount}</Text></Text>
+      </View>
     </SafeAreaView>
   );
 };
@@ -140,8 +155,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   headerText: {
-    color: 'white',
-    fontSize: 24,
+    color: '#00BFFF',
+    fontSize: 26,
     fontWeight: 'bold',
     textAlign: 'center',
   },
@@ -154,6 +169,26 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 18,
     marginTop: 10,
+  },
+  summaryContainer: {
+    marginTop: 20,
+    padding: 20,
+    backgroundColor: '#1A1E3A',
+    borderRadius: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  summaryText: {
+    fontSize: 18,
+    color: '#F3F3F3',
+    marginVertical: 5,
+  },
+  summaryValue: {
+    fontWeight: 'bold',
+    color: '#00BFFF',
   },
 });
 
