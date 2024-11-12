@@ -16,23 +16,32 @@ const LogIn = () => {
 
   // Access the API_KEY from app.json
   const API_KEY = Constants.expoConfig.extra.API_KEY;
-
-  // Function to animate the logo
-  const animateLogo = () => {
-    Animated.loop(
+  
+ // Function to animate the logo with smoother timing and easing
+const animateLogo = () => {
+  Animated.loop(
+    Animated.sequence([
       Animated.timing(logoAnimation, {
-        toValue: 1,
-        duration: 3500,
-        easing: Easing.inOut(Easing.ease),
+        toValue: 1.1,  // Slightly larger scale for a subtle pulse effect
+        duration: 4000,  // Increased duration for slower, smoother effect
+        easing: Easing.out(Easing.quad),  // Easing out for a smooth start
         useNativeDriver: true,
-      })
-    ).start();
-  };
+      }),
+      Animated.timing(logoAnimation, {
+        toValue: 1,  // Return to normal scale
+        duration: 4000,  // Same duration for symmetry
+        easing: Easing.in(Easing.quad),  // Easing in for a gentle end
+        useNativeDriver: true,
+      }),
+    ])
+  ).start();
+};
 
-  // Start the animation when the component mounts
-  React.useEffect(() => {
-    animateLogo();
-  }, []);
+// Start the animation when the component mounts
+React.useEffect(() => {
+  animateLogo();
+}, []);
+
 
   // Function to fetch user info after login
   const fetchUserInfo = async (userJwt) => {
@@ -154,48 +163,39 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0A0E27',
-    padding: 20,
+    backgroundColor: '#0D1321',
+    paddingHorizontal: 24,
   },
   logoContainer: {
     marginBottom: 40,
   },
   logo: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    resizeMode: 'contain',
+    borderWidth: 2,
+    borderColor: '#2D80FB', // Subtle border for a polished look
+    shadowColor: '#2D80FB', // Light blue shadow for glow effect
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
   },
   input: {
     backgroundColor: '#1A1E3A',
-    color: '#FFFFFF',
+    color: '#E1E4E8',
     width: '100%',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 20,
-    borderColor: '#4D9FF9',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 18,
+    borderColor: '#2D80FB',
     borderWidth: 1,
-    shadowColor: '#4D9FF9',
+    shadowColor: '#FF6F3C',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-  },
-  loginButton: {
-    backgroundColor: '#4D9FF9',
-    padding: 15,
-    borderRadius: 10,
-    width: '100%',
-    alignItems: 'center',
-    alignItems: 'center',
-    shadowColor: '#6FA9FF',
-    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  loginButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
+    shadowRadius: 6,
+    elevation: 5,
   },
   passwordContainer: {
     flexDirection: 'row',
@@ -208,8 +208,26 @@ const styles = StyleSheet.create({
     right: 10,
   },
   showHideText: {
-    color: '#4D9FF9',
-    fontWeight: 'bold',
+    color: '#6FA9FF',
+    fontWeight: '600',
+  },
+  loginButton: {
+    backgroundColor: '#2D80FB',
+    paddingVertical: 14,
+    borderRadius: 12,
+    width: '100%',
+    alignItems: 'center',
+    shadowColor: '#FF6F3C',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  loginButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: 0.8,
   },
 });
 

@@ -89,7 +89,7 @@ const ChargingGraph = () => {
     },
   ];
 
-  const screenWidth = Dimensions.get("window").width;
+  const screenWidth = Dimensions.get("window").width * 0.9; // 90% of the screen width
 
   if (isLoading) {
     return (
@@ -148,7 +148,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0A0E27',
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 30,
   },
   header: {
     alignItems: 'center',
@@ -156,9 +157,10 @@ const styles = StyleSheet.create({
   },
   headerText: {
     color: '#00BFFF',
-    fontSize: 26,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontWeight: '700',
     textAlign: 'center',
+    letterSpacing: 0.8,
   },
   loadingContainer: {
     flex: 1,
@@ -166,29 +168,45 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    color: '#FFF',
+    color: '#F3F3F3',
     fontSize: 18,
     marginTop: 10,
   },
   summaryContainer: {
-    marginTop: 20,
-    padding: 20,
-    backgroundColor: '#1A1E3A',
-    borderRadius: 15,
+    marginTop: 25,
+    padding: 18,
+    backgroundColor: '#1A2331',
+    borderRadius: 12,
+    alignItems: 'center',
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowRadius: 6,
+    elevation: 5,
   },
   summaryText: {
-    fontSize: 18,
-    color: '#F3F3F3',
-    marginVertical: 5,
+    fontSize: 17,
+    color: '#E0E4EA',
+    marginVertical: 3,
+    textAlign: 'center',
   },
   summaryValue: {
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: '#00BFFF',
+  },
+  chartContainer: {
+    alignItems: 'center',
+    marginTop: 15,
+    marginBottom: 15,
+  },
+  pieChartStyle: {
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 4,
+    padding: 10,
   },
 });
 
