@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { SafeAreaView, View, Text, StyleSheet, Dimensions, ActivityIndicator, Alert } from 'react-native';
+import { SafeAreaView, View, Text, StyleSheet, Dimensions, ActivityIndicator, Alert, ScrollView } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
@@ -89,7 +89,7 @@ const ChargingGraph = () => {
     },
   ];
 
-  const screenWidth = Dimensions.get("window").width * 0.9; // 90% of the screen width
+  const screenWidth = Dimensions.get("window").width * 0.9;
 
   if (isLoading) {
     return (
@@ -104,6 +104,7 @@ const ChargingGraph = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Charging Status Overview</Text>
       </View>
@@ -111,20 +112,20 @@ const ChargingGraph = () => {
       <PieChart
         data={chartData}
         width={screenWidth - 40}
-        height={300} // Increase the size of the chart
+        height={220}
         chartConfig={{
           backgroundColor: "#0A0E27",
           backgroundGradientFrom: "#1A2331",
           backgroundGradientTo: "#3A4C73",
           color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
           labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-          propsForLabels: { fontSize: 18, fontWeight: 'bold' },
+          propsForLabels: { fontSize: 15, fontWeight: 'bold' },
         }}
         accessor="value"
         backgroundColor="transparent"
         paddingLeft="15"
-        absolute // Display percentages inside pie chart
-        hasLegend={true} // Show legend with updated percentages
+        absolute 
+        hasLegend={true}
         style={{
           marginVertical: 20,
           borderRadius: 20,
@@ -140,6 +141,7 @@ const ChargingGraph = () => {
         <Text style={styles.summaryText}>Charging Instances: <Text style={styles.summaryValue}>{isChargingData.trueCount}</Text></Text>
         <Text style={styles.summaryText}>Not Charging Instances: <Text style={styles.summaryValue}>{isChargingData.falseCount}</Text></Text>
       </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -193,6 +195,10 @@ const styles = StyleSheet.create({
   summaryValue: {
     fontWeight: '700',
     color: '#00BFFF',
+  },
+  scrollContainer: {
+    paddingHorizontal: 24,
+    paddingTop: 30,
   },
   chartContainer: {
     alignItems: 'center',

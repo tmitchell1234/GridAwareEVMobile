@@ -112,6 +112,7 @@ const BatteryStatus = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
       <View style={styles.batteryContainer}>
         <View style={styles.batteryBody}>
           <Animated.View
@@ -135,6 +136,7 @@ const BatteryStatus = () => {
           </Text>
         )}
       </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -145,6 +147,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#0A0E27',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  scrollContent: {
+    paddingBottom: 30,
   },
   loadingContainer: {
     justifyContent: 'center',
@@ -189,7 +194,7 @@ const styles = StyleSheet.create({
   chargingAnimation: {
     marginLeft: 5,
     fontSize: 24,
-    color: '#FFD700', // Gold color for the lightning bolt
+    color: '#FFD700',
   },
 });
 

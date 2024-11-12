@@ -138,6 +138,7 @@ const FrequencyGraph = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Live Frequency Data</Text>
       </View>
@@ -231,6 +232,7 @@ const FrequencyGraph = () => {
         <Text style={[styles.legendText, { color: 'white' }]}>• 0 (OFF)</Text>
         <Text style={[styles.legendText, { color: 'white' }]}>• 1 (ON)</Text>
       </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -295,6 +297,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  scrollContent: {
+    paddingBottom: 30,
   },
 });
 

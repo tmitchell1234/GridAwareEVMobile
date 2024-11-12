@@ -124,6 +124,7 @@ const CurrentGraph = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Live Current Data</Text>
       </View>
@@ -183,6 +184,7 @@ const CurrentGraph = () => {
           />
         </View>
       </ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -210,6 +212,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  scrollContent: {
+    paddingBottom: 30,
   },
   unitExplanation: {
     alignItems: 'center',

@@ -124,6 +124,7 @@ const VoltageGraph = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Live Voltage Data</Text>
       </View>
@@ -182,6 +183,7 @@ const VoltageGraph = () => {
           />
         </View>
       </ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -209,6 +211,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  scrollContent: {
+    paddingBottom: 30,
   },
   unitExplanation: {
     alignItems: 'center',
