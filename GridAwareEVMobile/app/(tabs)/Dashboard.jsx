@@ -150,6 +150,7 @@ const Dashboard = () => {
         <ActivityIndicator size="large" color="#00BFFF" />
       ) : isRegistered ? (
         <>
+          <Text style={styles.graphTitle}>Live Measurement Data</Text>
           <LineChart
             data={chartData}
             width={screenWidth - 40}
@@ -179,7 +180,13 @@ const Dashboard = () => {
 
           <View style={styles.chargingStatusContainer}>
             <Text style={[styles.chargingStatusText, { color: isCharging ? '#00FF7F' : '#FF6347' }]}>
-              Charging Status: <Text style={styles.boldText}>{isCharging ? 'ON' : 'OFF'}</Text>
+              Charging Status: {isCharging ? 'ON' : 'OFF'}
+              </Text>
+          </View>
+
+          <View style={styles.statusNote}>
+            <Text style={styles.statusNoteText}>
+              Charging Status Depends On Frequency: Above 60Hz, Charging Stays ON; Below 60Hz, Charging Turns OFF.
             </Text>
           </View>
 
@@ -226,24 +233,138 @@ const Dashboard = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0A0E27', padding: 20 },
-  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  logo: { width: 60, height: 60, borderRadius: 30, marginRight: 12 },
-  headerText: { color: 'white', fontSize: 26, fontWeight: 'bold' },
-  legendContainer: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 12 },
-  legendText: { fontSize: 16, fontWeight: 'bold' },
-  chargingStatusContainer: { alignItems: 'center', marginVertical: 15 },
-  chargingStatusText: { fontSize: 20, fontWeight: 'bold' },
-  boldText: { fontWeight: 'bold' },
-  scrollContainer: { flex: 1, marginTop: 25 },
-  sectionButton: { backgroundColor: '#3A4C73', padding: 20, borderRadius: 15, alignItems: 'center', marginBottom: 15, flexDirection: 'row', shadowColor: "#000", shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 },
-  icon: { marginRight: 15 },
-  buttonText: { color: 'white', fontSize: 18, fontWeight: '600' },
-  promptContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  promptText: { color: '#FFF', fontSize: 24, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' },
-  promptDescription: { color: '#BBB', fontSize: 16, textAlign: 'center', paddingHorizontal: 30, marginBottom: 20 },
-  connectButton: { backgroundColor: '#2B3467', paddingVertical: 18, paddingHorizontal: 35, borderRadius: 15, shadowColor: "#000", shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 },
-  connectButtonText: { color: '#00BFFF', fontSize: 18, fontWeight: 'bold' },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#0A0E27', 
+    padding: 20 
+  },
+  header: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    marginBottom: 20 
+  },
+  logo: { 
+    width: 60, 
+    height: 60, 
+    borderRadius: 30, 
+    marginRight: 12 
+  },
+  headerText: { 
+    color: 'white', 
+    fontSize: 26, 
+    fontWeight: 'bold' 
+  },
+  legendContainer: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-around', 
+    paddingVertical: 12 
+  },
+  legendText: { 
+    fontSize: 16, 
+    fontWeight: 'bold' 
+  },
+  chargingStatusContainer: { 
+    alignItems: 'center', 
+    marginVertical: 15, 
+    backgroundColor: '#1A1E3A', 
+    padding: 12, 
+    borderRadius: 15,
+    shadowColor: "#FF6F3C", 
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  chargingStatusText: { 
+    fontSize: 20, 
+    fontWeight: 'bold', 
+    color: '#FFF', 
+  },
+  boldText: { 
+    fontWeight: 'bold', 
+    color: '#FFF' 
+  },
+  scrollContainer: { 
+    flex: 1, 
+    marginTop: 25 
+  },
+  sectionButton: { 
+    backgroundColor: '#3A4C73', 
+    padding: 20, 
+    borderRadius: 15, 
+    alignItems: 'center', 
+    marginBottom: 15, 
+    flexDirection: 'row', 
+    shadowColor: "#FF6F3C", // Fiery orange shadow
+    shadowOffset: { width: 0, height: 6 }, 
+    shadowOpacity: 0.4, 
+    shadowRadius: 10, 
+    elevation: 8,
+  },
+  icon: { 
+    marginRight: 15 
+  },
+  buttonText: { 
+    color: 'white', 
+    fontSize: 18, 
+    fontWeight: '600' 
+  },
+  promptContainer: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  promptText: { 
+    color: '#FFF', 
+    fontSize: 24, 
+    fontWeight: 'bold', 
+    marginBottom: 12, 
+    textAlign: 'center' 
+  },
+  promptDescription: { 
+    color: '#BBB', 
+    fontSize: 16, 
+    textAlign: 'center', 
+    paddingHorizontal: 30, 
+    marginBottom: 20 
+  },
+  connectButton: { 
+    backgroundColor: '#2B3467', 
+    paddingVertical: 18, 
+    paddingHorizontal: 35, 
+    borderRadius: 15, 
+    shadowColor: "#000", 
+    shadowOffset: { width: 0, height: 6 }, 
+    shadowOpacity: 0.3, 
+    shadowRadius: 8, 
+    elevation: 8 
+  },
+  connectButtonText: { 
+    color: '#00BFFF', 
+    fontSize: 18, 
+    fontWeight: 'bold' 
+  },
+  graphTitle: {
+    color: '#E1E4E8',
+    fontSize: 20,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  statusNote: {
+    backgroundColor: '#1A1E3A',
+    padding: 12,
+    borderRadius: 10,
+    marginTop: 10,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  statusNoteText: {
+    color: '#B0B0B0',
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
 });
 
 export default Dashboard;

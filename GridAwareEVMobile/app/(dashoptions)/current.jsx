@@ -90,7 +90,7 @@ const CurrentGraph = () => {
 
     setLabels((prevLabels) => {
       const nextTime = (parseInt(prevLabels[prevLabels.length - 1], 10) + 1).toString();
-      const updatedLabels = [...prevLabels, nextTime];
+      const updatedLabels = [...prevLabels, `${nextTime}s`];
       if (updatedLabels.length > 20) {
         updatedLabels.shift();
       }
@@ -136,6 +136,10 @@ const CurrentGraph = () => {
 
       <View style={styles.swipeHintContainer}>
         <Text style={styles.swipeHintText}>Swipe left or right to view more data</Text>
+      </View>
+
+      <View style={styles.unitExplanation}>
+        <Text style={styles.unitExplanationText}>Note: A stands for Amps, s stands for seconds.</Text>
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -203,6 +207,20 @@ const styles = StyleSheet.create({
   },
   swipeHintText: {
     color: '#8A2BE2',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  unitExplanation: {
+    alignItems: 'center',
+    marginVertical: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+  },
+  unitExplanationText: {
+    color: '#E1E4E8',
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',

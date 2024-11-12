@@ -102,7 +102,7 @@ const FrequencyGraph = () => {
 
     setLabels((prevLabels) => {
       const nextTime = (parseInt(prevLabels[prevLabels.length - 1], 10) + 1).toString();
-      const updatedLabels = [...prevLabels, nextTime];
+      const updatedLabels = [...prevLabels, `${nextTime}s`];
       if (updatedLabels.length > 20) {
         updatedLabels.shift();
       }
@@ -152,6 +152,10 @@ const FrequencyGraph = () => {
         <Text style={styles.swipeHintText}>Swipe left or right to view more data</Text>
       </View>
 
+      <View style={styles.unitExplanation}>
+        <Text style={styles.unitExplanationText}>Note: Hz stands for Hertz, s stands for seconds.</Text>
+      </View>
+
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
         <View style={styles.chartContainer}>
           <LineChart
@@ -185,6 +189,12 @@ const FrequencyGraph = () => {
 
       <View style={styles.header}>
         <Text style={styles.headerText}>Charging Status</Text>
+      </View>
+
+      <View style={styles.statusNote}>
+        <Text style={styles.statusNoteText}>
+          Charging Status Depends On Frequency: Above 60Hz, Charging Stays ON; Below 60Hz, Charging Turns OFF.
+        </Text>
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
@@ -249,12 +259,43 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  statusNote: {
+    backgroundColor: '#1A1E3A',
+    padding: 10,
+    borderRadius: 12,
+    marginVertical: 10,
+    shadowColor: "#FF6F3C",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  statusNoteText: {
+    color: '#E1E4E8',
+    fontSize: 14,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
   legendContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginTop: 10,
   },
   legendText: { fontSize: 16, fontWeight: 'bold', marginHorizontal: 10 },
+  unitExplanation: {
+    alignItems: 'center',
+    marginVertical: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+  },
+  unitExplanationText: {
+    color: '#E1E4E8',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
 });
 
 export default FrequencyGraph;

@@ -61,35 +61,44 @@ const styles = StyleSheet.create({
     backgroundColor: "#10142C",  
   },
   logo: {
-    width: 160,  // Slightly larger for prominence
-    height: 160,
-    borderRadius: 80,
+    width: 140,  // Slightly adjusted to keep it balanced
+    height: 140,
+    borderRadius: 70,
     marginBottom: 30,
     resizeMode: 'contain',
     borderWidth: 2,
-    borderColor: '#2D80FB', // Subtle border for a polished look
+    borderColor: '#2D80FB',
+    shadowColor: '#2D80FB',  // Subtle blue shadow for emphasis
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 8,
   },
   title: {
     color: "#F2F2F2",
-    fontSize: 28, // Slightly larger for attention
+    fontSize: 26, // Reduced slightly for balance
     fontWeight: "700",
     marginBottom: 35,
     textAlign: 'center',
     letterSpacing: 1.3,
-    fontFamily: 'Roboto', // Modern and sleek font
+    fontFamily: 'Roboto',
+    shadowColor: '#000',  // Adding a subtle text shadow for depth
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
   },
   loginButton: {
     backgroundColor: "#2D80FB",
     paddingVertical: 14,
-    borderRadius: 22,
+    borderRadius: 20,
     marginBottom: 14,
-    width: "80%", // Slightly wider for balance
+    width: "80%",
     alignItems: "center",
-    shadowColor: "#000",
+    shadowColor: "#FF6F3C",  // Fiery orange shadow for contrast
     shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 8,
   },
   loginButtonText: {
     color: "#FFFFFF",
@@ -101,15 +110,15 @@ const styles = StyleSheet.create({
   signupButton: {
     backgroundColor: "#FF6F3C",
     paddingVertical: 14,
-    borderRadius: 22,
+    borderRadius: 20,
     marginBottom: 14,
     width: "80%",
     alignItems: "center",
-    shadowColor: "#000",
+    shadowColor: "#2D80FB",  // Cool blue shadow for complementary effect
     shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 8,
   },
   signupButtonText: {
     color: "#FFFFFF",
@@ -127,6 +136,10 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
     letterSpacing: 0.5,
     fontFamily: 'Roboto',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
   aboutUsContainer: {
     position: "absolute",
@@ -135,7 +148,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderColor: "#2D80FB",
     borderWidth: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)', // Subtle background for depth
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    shadowColor: '#2D80FB',  // Subtle blue shadow for soft emphasis
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
   },
   aboutUsText: {
     color: "#F2F2F2",

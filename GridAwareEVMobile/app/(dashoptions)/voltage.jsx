@@ -138,6 +138,10 @@ const VoltageGraph = () => {
         <Text style={styles.swipeHintText}>Swipe left or right to view more data</Text>
       </View>
 
+      <View style={styles.unitExplanation}>
+        <Text style={styles.unitExplanationText}>Note: V stands for Voltage, s stands for seconds.</Text>
+      </View>
+
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View style={styles.chartContainer}>
           <BarChart
@@ -202,6 +206,20 @@ const styles = StyleSheet.create({
   },
   swipeHintText: {
     color: '#4D9FF9',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  unitExplanation: {
+    alignItems: 'center',
+    marginVertical: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+  },
+  unitExplanationText: {
+    color: '#E1E4E8',
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
