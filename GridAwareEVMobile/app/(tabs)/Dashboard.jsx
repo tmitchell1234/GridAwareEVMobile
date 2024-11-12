@@ -141,6 +141,7 @@ const Dashboard = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
         <Image source={require('../images/GridAwareLogo.png')} style={styles.logo} />
         <Text style={styles.headerText}>Dashboard</Text>
@@ -228,6 +229,7 @@ const Dashboard = () => {
           </TouchableOpacity>
         </View>
       )}
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -364,6 +366,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     lineHeight: 18,
+  },
+  scrollContent: {
+    paddingBottom: 30,
   },
 });
 
