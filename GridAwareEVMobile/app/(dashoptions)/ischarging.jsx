@@ -105,45 +105,56 @@ const ChargingGraph = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Charging Status Overview</Text>
-      </View>
+        <View style={styles.header}>
+          <Text style={styles.headerText}>Charging Status Overview</Text>
+        </View>
+  
+        {/* Legend Box */}
+        <View style={styles.legendContainer}>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: '#00FF7F' }]} /> 
+            <Text style={styles.legendText}>Charging</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: '#FF6F3C' }]} /> 
+            <Text style={styles.legendText}>Not Charging</Text>
+          </View>
+        </View>
 
-      <PieChart
-        data={chartData}
-        width={screenWidth - 40}
-        height={220}
-        chartConfig={{
-          backgroundColor: "#0A0E27",
-          backgroundGradientFrom: "#1A2331",
-          backgroundGradientTo: "#3A4C73",
-          color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-          labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-          propsForLabels: { fontSize: 15, fontWeight: 'bold' },
-        }}
-        accessor="value"
-        backgroundColor="transparent"
-        paddingLeft="15"
-        absolute 
-        hasLegend={true}
-        style={{
-          marginVertical: 20,
-          borderRadius: 20,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.3,
-          shadowRadius: 8,
-          elevation: 8,
-        }}
-      />
-
-      <View style={styles.summaryContainer}>
-        <Text style={styles.summaryText}>Charging Instances: <Text style={styles.summaryValue}>{isChargingData.trueCount}</Text></Text>
-        <Text style={styles.summaryText}>Not Charging Instances: <Text style={styles.summaryValue}>{isChargingData.falseCount}</Text></Text>
+        <View style={styles.chartContainer}>
+        <PieChart
+          data={chartData}
+          width={screenWidth - 40}
+          height={220}
+          chartConfig={{
+            backgroundColor: "#0A0E27",
+            backgroundGradientFrom: "#1A2331",
+            backgroundGradientTo: "#3A4C73",
+            color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+            labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+            propsForLabels: { fontSize: 15, fontWeight: 'bold' },
+          }}
+          accessor="value"
+          backgroundColor="transparent"
+          paddingLeft="15"
+          absolute 
+          hasLegend={false}
+          style={styles.pieChartStyle}
+        />
       </View>
+  
+        <View style={styles.summaryContainer}>
+          <Text style={styles.summaryText}>Charging Instances: <Text style={styles.summaryValue}>{isChargingData.trueCount}</Text></Text>
+          <Text style={styles.summaryText}>Not Charging Instances: <Text style={styles.summaryValue}>{isChargingData.falseCount}</Text></Text>
+
+          {/* Percentage Summary */}
+        <Text style={styles.percentageText}>Charging Percentage: <Text style={styles.summaryValue}>{chargingPercentage}%</Text></Text>
+        <Text style={styles.percentageText}>Not Charging Percentage: <Text style={styles.summaryValue}>{notChargingPercentage}%</Text></Text>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
+  
 };
 
 const styles = StyleSheet.create({
@@ -202,8 +213,35 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     alignItems: 'center',
-    marginTop: 15,
+    marginVertical: 20,
+  },
+  legendContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     marginBottom: 15,
+    paddingHorizontal: 20,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 10,
+  },
+  legendDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 6,
+  },
+  legendText: {
+    color: '#E0E4EA',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  percentageText: {
+    fontSize: 16,
+    color: '#E0E4EA',
+    marginVertical: 3,
+    textAlign: 'center',
   },
   pieChartStyle: {
     borderRadius: 20,
