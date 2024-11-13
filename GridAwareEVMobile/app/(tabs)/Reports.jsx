@@ -97,7 +97,7 @@ const Reports = () => {
 
         {/* Display report data if available */}
         {reportData && (
-          <View style={styles.reportContainer}>
+          <ScrollView style={styles.reportContainer} contentContainerStyle={styles.reportScrollContent}>
             <Text style={styles.reportTitle}>Report for {reportData.date}</Text>
             <View style={styles.reportContent}>
               <Text style={styles.reportItem}>Average Frequency: <Text style={styles.reportValue}>{reportData.averageFrequency} Hz</Text></Text>
@@ -106,8 +106,8 @@ const Reports = () => {
               <Text style={styles.reportItem}>Charging Status: <Text style={styles.reportValue}>{reportData.chargingStatus}</Text> of the time</Text>
               <Text style={styles.reportItem}>Times Halted: <Text style={styles.reportValue}>{reportData.haltedCount}</Text> times</Text>
             </View>
-          </View>
-        )}
+          </ScrollView>
+)}
       </View>
     </SafeAreaView>
   );
@@ -182,6 +182,9 @@ const styles = StyleSheet.create({
   reportValue: {
     fontWeight: 'bold',
     color: '#00BFFF',
+  },
+  reportScrollContent: {
+    paddingBottom: 20,
   },
 });
 

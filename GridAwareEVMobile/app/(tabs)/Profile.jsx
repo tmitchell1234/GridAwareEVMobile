@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, TouchableOpacity, StyleSheet, Image, FlatList, Alert, ScrollView, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, FlatList, Alert, ScrollView, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios'; 
@@ -176,71 +176,77 @@ const Profile = () => {
 
   return (
     <SafeAreaView style={styles.safeAreaContainer}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.header}>
-          <Image source={require('../images/GridAwareLogo.png')} style={styles.profileImage} />
-          <Text style={styles.userNameText}>{userFullName}</Text>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Update Profile</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter New First Name"
-            placeholderTextColor="#A9A9A9"
-            value={firstNameInput}
-            onChangeText={setFirstNameInput}
-          />
-          <TouchableOpacity style={styles.saveButton} onPress={updateFirstName}>
-            <Text style={styles.saveButtonText}>Update First Name</Text>
-          </TouchableOpacity>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter New Last Name"
-            placeholderTextColor="#A9A9A9"
-            value={lastNameInput}
-            onChangeText={setLastNameInput}
-          />
-          <TouchableOpacity style={styles.saveButton} onPress={updateLastName}>
-            <Text style={styles.saveButtonText}>Update Last Name</Text>
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity style={styles.optionButton} onPress={fetchDevices}>
-          <Text style={styles.optionText}>Get Registered Devices</Text>
-        </TouchableOpacity>
-
-        <FlatList
-          data={devices}
-          keyExtractor={(item) => item.device_mac_address}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.deviceItem} onPress={() => selectDevice(item)}>
-              <Text style={styles.deviceText}>Device MAC: {item.device_mac_address}</Text>
+      <KeyboardAvoidingView 
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <View style={styles.header}>
+            <Image source={require('../images/GridAwareLogo.png')} style={styles.profileImage} />
+            <Text style={styles.userNameText}>{userFullName}</Text>
+          </View>
+  
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Update Profile</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter New First Name"
+              placeholderTextColor="#A9A9A9"
+              value={firstNameInput}
+              onChangeText={setFirstNameInput}
+            />
+            <TouchableOpacity style={styles.saveButton} onPress={updateFirstName}>
+              <Text style={styles.saveButtonText}>Update First Name</Text>
             </TouchableOpacity>
-          )}
-          ListEmptyComponent={() => <Text style={styles.emptyListText}>No devices found.</Text>}
-          contentContainerStyle={styles.flatListContent}
-        />
-
-        {selectedDevice && (
-          <View style={styles.selectedDeviceContainer}>
-            <Text style={styles.selectedDeviceText}>Selected Device: {selectedDevice}</Text>
-            <TouchableOpacity style={styles.unregisterButton} onPress={unregisterDevice}>
-              <Text style={styles.unregisterButtonText}>Unregister Device</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter New Last Name"
+              placeholderTextColor="#A9A9A9"
+              value={lastNameInput}
+              onChangeText={setLastNameInput}
+            />
+            <TouchableOpacity style={styles.saveButton} onPress={updateLastName}>
+              <Text style={styles.saveButtonText}>Update Last Name</Text>
             </TouchableOpacity>
           </View>
-        )}
-
-        <TouchableOpacity style={styles.deleteButton} onPress={deleteUserAccount}>
-          <Text style={styles.deleteButtonText}>Delete Account</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutButtonText}>Log Out</Text>
-        </TouchableOpacity>
-      </ScrollView>
+  
+          <TouchableOpacity style={styles.optionButton} onPress={fetchDevices}>
+            <Text style={styles.optionText}>Get Registered Devices</Text>
+          </TouchableOpacity>
+  
+          <FlatList
+            data={devices}
+            keyExtractor={(item) => item.device_mac_address}
+            renderItem={({ item }) => (
+              <TouchableOpacity style={styles.deviceItem} onPress={() => selectDevice(item)}>
+                <Text style={styles.deviceText}>Device MAC: {item.device_mac_address}</Text>
+              </TouchableOpacity>
+            )}
+            ListEmptyComponent={() => <Text style={styles.emptyListText}>No devices found.</Text>}
+            contentContainerStyle={styles.flatListContent}
+          />
+  
+          {selectedDevice && (
+            <View style={styles.selectedDeviceContainer}>
+              <Text style={styles.selectedDeviceText}>Selected Device: {selectedDevice}</Text>
+              <TouchableOpacity style={styles.unregisterButton} onPress={unregisterDevice}>
+                <Text style={styles.unregisterButtonText}>Unregister Device</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+  
+          <TouchableOpacity style={styles.deleteButton} onPress={deleteUserAccount}>
+            <Text style={styles.deleteButtonText}>Delete Account</Text>
+          </TouchableOpacity>
+  
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Text style={styles.logoutButtonText}>Log Out</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
+  
 };
 
 const styles = StyleSheet.create({
