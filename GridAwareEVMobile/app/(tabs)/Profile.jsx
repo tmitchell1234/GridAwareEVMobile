@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, TouchableOpacity, StyleSheet, Image, FlatList, Alert, ScrollView, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios'; 
 import Constants from 'expo-constants';
@@ -246,7 +247,7 @@ const Profile = () => {
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
-  
+
 };
 
 const styles = StyleSheet.create({
@@ -257,6 +258,9 @@ const styles = StyleSheet.create({
   scrollContainer: {
     paddingHorizontal: 24,
     paddingTop: 30,
+    paddingBottom: 80,
+    flexGrow: 1,    
+    minHeight: '100%', 
   },
   header: {
     alignItems: 'center',
@@ -324,7 +328,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginTop: 10,
     alignItems: 'center',
-    shadowColor: '#FF6F3C',  // Fiery orange shadow for blue button
+    shadowColor: '#FF6F3C', 
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
     shadowRadius: 10,
@@ -407,7 +411,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginTop: 12,
     alignItems: 'center',
-    shadowColor: '#2D80FB',  // Cool blue shadow for orange button
+    shadowColor: '#2D80FB',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -442,7 +446,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 22,
     alignSelf: 'stretch',
-    shadowColor: '#FF6F3C',  // Fiery orange shadow for blue button
+    shadowColor: '#FF6F3C',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
