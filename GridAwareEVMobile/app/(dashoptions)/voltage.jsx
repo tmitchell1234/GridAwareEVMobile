@@ -90,7 +90,7 @@ const VoltageGraph = () => {
 
     setLabels((prevLabels) => {
       const nextTime = (parseInt(prevLabels[prevLabels.length - 1], 10) + 1).toString();
-      const updatedLabels = [...prevLabels, nextTime];
+      const updatedLabels = [...prevLabels, `${nextTime}s`];
       if (updatedLabels.length > 20) {
         updatedLabels.shift();
       }
