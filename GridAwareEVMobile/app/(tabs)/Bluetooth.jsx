@@ -5,6 +5,7 @@ import { BleManager } from 'react-native-ble-plx';
 import { requestMultiple, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import { Buffer } from 'buffer';  // Import Buffer
 import Constants from 'expo-constants';
+import CryptoJS from 'crypto-js';
 
 const manager = new BleManager();
 const API_KEY = Constants.expoConfig.extra.API_KEY;  // API_KEY from app.json
@@ -12,6 +13,10 @@ const API_KEY = Constants.expoConfig.extra.API_KEY;  // API_KEY from app.json
 const ESP32_PREFIX = 'ESP32';  // Filter ESP32 devices by name
 const SERVICE_UUID = "12345678-1234-1234-1234-123456789abc";  // Service UUID
 const CHARACTERISTIC_UUID = "87654321-4321-4321-4321-cba987654321";  // Characteristic UUID
+
+// Encryption AES
+const key = CryptoJS.enc.Utf8.parse("1234567890123456");
+const iv = CryptoJS.enc.Utf8.parse("abcdef9876543210");
 
 const Bluetooth = () => {
   const [jwtToken, setJwtToken] = useState(null);
@@ -121,20 +126,23 @@ const Bluetooth = () => {
       console.error('No JWT available to send.');
       return;
     }
-
+  
+    // Encrypt the JWT before sending
+    const encryptedJWT = CryptoJS.AES.encrypt(JSON.stringify({ jwt: jwtToken }), key, { iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 }).toString();
+  
     try {
       const characteristic = await device.writeCharacteristicWithResponseForService(
         SERVICE_UUID,
         CHARACTERISTIC_UUID,
-        Buffer.from(JSON.stringify({jwt: jwtToken })).toString('base64')
+        Buffer.from(encryptedJWT).toString('base64')  // Send as Base64 encoded string
       );
-      console.log('JWT sent successfully');
+      console.log('Encrypted JWT sent successfully');
     } catch (error) {
-      console.error('Error sending JWT:', error);
+      console.error('Error sending encrypted JWT:', error);
       Alert.alert('Error', 'Failed to send JWT.');
     }
   };
-
+  
   // Connect to the selected Bluetooth device and send user_jwt automatically
   const connectToDevice = async (device) => {
     try {
@@ -142,7 +150,7 @@ const Bluetooth = () => {
       setConnectedDevice(connected); // Set the connected device
       const services = await connected.discoverAllServicesAndCharacteristics();
       const availableServices = await connected.services();
-
+      
       // Confirm the correct service is available
       const service = availableServices.find(s => s.uuid === SERVICE_UUID);
       if (!service) {
@@ -172,24 +180,27 @@ const Bluetooth = () => {
       Alert.alert('Error', 'Please enter both SSID and password.');
       return;
     }
-
+  
+    // Encrypt the Wi-Fi credentials before sending
+    const encryptedCredentials = CryptoJS.AES.encrypt(JSON.stringify({ wifi: wifiSSID, password: wifiPassword }), key, { iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 }).toString();
+  
     setSendingCredentials(true);
     try {
       const characteristic = await connectedDevice.writeCharacteristicWithResponseForService(
         SERVICE_UUID,
         CHARACTERISTIC_UUID,
-        Buffer.from(JSON.stringify({ wifi: wifiSSID, password: wifiPassword })).toString('base64')
+        Buffer.from(encryptedCredentials).toString('base64')  // Send as Base64 encoded string
       );
-
-      Alert.alert('Credentials Sent', `SSID: ${wifiSSID} and password sent to the ESP32.`);
+  
+      Alert.alert('Credentials Sent', `Encrypted SSID and password sent to the ESP32.`);
       setSendingCredentials(false);
     } catch (error) {
-      console.error('Error sending Wi-Fi credentials:', error);
+      console.error('Error sending encrypted Wi-Fi credentials:', error);
       Alert.alert('Error', 'Failed to send Wi-Fi credentials.');
       setSendingCredentials(false);
     }
   };
-
+  
   // Clean up the manager on unmount to avoid memory leaks
   useEffect(() => {
     return () => {
